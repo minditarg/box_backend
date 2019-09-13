@@ -65,7 +65,7 @@ app.post('/imagen',isLoggedIn,function(req,res){
 
 app.get('/list-users-admin',isLoggedIn,function(req,res){
 
-  connection.query("SELECT * FROM users_admin", function (err, result) {
+  connection.query("SELECT * FROM users_admin u LEFT JOIN tipo_users as tu ON u.id_tipo_users = tu.id_tipo_users ", function (err, result) {
     if (err) return res.json({success:0,error_msj:err});
     res.json({success:1,result});
   });
