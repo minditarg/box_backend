@@ -19,8 +19,6 @@ var upload = multer({ storage : storage}).single('userPhoto');
 
 
 
-
-
 connection.query('USE ' + dbconfig.database);
 connection_mult.query('USE ' + dbconfig.database);
 
@@ -51,8 +49,56 @@ module.exports = function(app, passport) {
   }) (req, res);
 });
 
+app.get('/list-users',isLoggedIn,function(req,res){
+
+	connection.query("SELECT * FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id ", function (err, result) {
+	  if (err) return res.json({success:0,error_msj:err});
+	  res.json({success:1,result});
+	});
+  
+  });
+
+// route middleware to make sure
+function isLoggedIn(req, res, next) {
+
+	// if user is authenticated in the session, carry on
+	if (req.isAuthenticated())
+		return next();
+
+	// if they aren't redirect them to the home page
+	res.json({success:3,error_msj:"no esta autenticado"});
+}
 
 
+// =====================================
+	// LOGOUT ==============================
+	// =====================================
+	app.get('/logout', function(req, res) {
+		req.logout();
+		res.redirect('/');
+	});
+
+
+	app.get('/list-materiales', isLoggedIn,function(req, res) {
+		connection.query("SELECT * FROM materiales", function (err, result) {
+		if (err) return res.json({success:0,error_msj:err});
+		res.json({success:1,result});
+		})
+	});
+
+	app.get('/list-users_type', isLoggedIn,function(req, res) {
+		connection.query("SELECT * FROM users_type", function (err, result) {
+		if (err) return res.json({success:0,error_msj:err});
+		res.json({success:1,result});
+		})
+	});
+
+	
+
+/**********************************/
+/**********************************/
+/**********************************/
+/**********************************/
 
 app.post('/imagen',isLoggedIn,function(req,res){
     upload(req,res,function(err,file) {
@@ -63,14 +109,7 @@ app.post('/imagen',isLoggedIn,function(req,res){
     });
 });
 
-app.get('/list-users-admin',isLoggedIn,function(req,res){
 
-  connection.query("SELECT * FROM users_admin u LEFT JOIN tipo_users as tu ON u.id_tipo_users = tu.id_tipo_users ", function (err, result) {
-    if (err) return res.json({success:0,error_msj:err});
-    res.json({success:1,result});
-  });
-
-});
 
 //list-users-2 no es la forma mas eficiente de recorrer el array de resultados
 app.get('/list-users-2',isLoggedIn,function(req,res){
@@ -109,7 +148,7 @@ app.get('/list-users-2',isLoggedIn,function(req,res){
 });
 
 
-app.get('/list-users',function(req,res){
+app.get('/list-users2',function(req,res){
 	 var query =`SELECT * FROM users AS us LEFT JOIN  estado as es ON us.id_estado = es.id_estado LEFT JOIN users_sectores AS uss ON uss.id_users = us.id LEFT JOIN sectores AS sec ON uss.id_sectores = sec.id_sectores order by us.id `;
   connection.query(query, function (err, result) {
     if (err) return res.json({success:0,error_msj:err});
@@ -283,28 +322,13 @@ if(req.body.id_users) {
 		});
 	});
 
-	// =====================================
-	// LOGOUT ==============================
-	// =====================================
-	app.get('/logout', function(req, res) {
-		req.logout();
-		res.redirect('/');
-	});
+	
 
 
 	};
 
 
-// route middleware to make sure
-function isLoggedIn(req, res, next) {
 
-	// if user is authenticated in the session, carry on
-	if (req.isAuthenticated())
-		return next();
-
-	// if they aren't redirect them to the home page
-	res.json({success:3,error_msj:"no esta autenticado"});
-}
 
 // route middleware to make sure
 

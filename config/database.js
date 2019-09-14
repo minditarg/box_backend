@@ -11,6 +11,6 @@ module.exports = {
         'user': 'matias',
         'password': 'Holaardu'        
     },
-	'database': 'acreditacion',
+	'database': 'boxrental',
     'users_table': 'users_admin'
 };
