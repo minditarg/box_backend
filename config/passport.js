@@ -53,18 +53,20 @@ module.exports = function(passport) {
                 if (err)
                     return done(err);
                 if (rows.length) {
-                    return done(null, false, req.flash('signupMessage', 'That username is already taken.'));
+                    return done(null, false, req.flash('signupMessage', 'El nombre de usuario se encuentra utilizado.'));
                 } else {
                     // if there is no user with that username
                     // create the user
                     var newUserMysql = {
                         username: username,
-                        password: bcrypt.hashSync(password, null, null)  // use the generateHash function in our user model
+                        password: bcrypt.hashSync(password, null, null),
+                        nombre: req.body.nombre,
+                        id_users_type : req.body.id_users_type // use the generateHash function in our user model
                     };
 
-                    var insertQuery = "INSERT INTO users_admin ( username, password ) values (?,?)";
+                    var insertQuery = "INSERT INTO users ( username, password,nombre,id_users_type ) values (?,?,?,?)";
 
-                    connection.query(insertQuery,[newUserMysql.username, newUserMysql.password],function(err, rows) {
+                    connection.query(insertQuery,[newUserMysql.username, newUserMysql.password,newUserMysql.nombre,newUserMysql.id_users_type],function(err, rows) {
                         newUserMysql.id = rows.insertId;
 
                         return done(null, newUserMysql);
@@ -102,12 +104,12 @@ module.exports = function(passport) {
 
                 // all is well, return successful user
                 return done(null,rows[0]);
-            }); 
+            });
         })
     );
 
 
-    
+
 
 
 

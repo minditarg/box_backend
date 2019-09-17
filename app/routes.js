@@ -49,24 +49,42 @@ module.exports = function(app, passport) {
   }) (req, res);
 });
 
-app.get('/list-users',isLoggedIn,function(req,res){
+
+app.post('/signup-json',accessControl,	function(req, res) {
+passport.authenticate('local-signup', function(err, user, info) {
+  if (err) { return res.json({success:0,error_msj:"no se pudo autenticar"},err) }
+  if (!user) { return res.json({success:0,error_msj:"Posible nombre de usuario duplicado"}) }
+
+    return res.json({success:1,user});
+
+}) (req, res);
+});
+
+
+app.get('/list-users',isLoggedIn,isAdmin,function(req,res){
 
 	connection.query("SELECT * FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id ", function (err, result) {
 	  if (err) return res.json({success:0,error_msj:err});
 	  res.json({success:1,result});
 	});
-  
+
   });
 
 // route middleware to make sure
 function isLoggedIn(req, res, next) {
-
 	// if user is authenticated in the session, carry on
 	if (req.isAuthenticated())
 		return next();
-
 	// if they aren't redirect them to the home page
 	res.json({success:3,error_msj:"no esta autenticado"});
+}
+
+function isAdmin(req, res, next) {
+	// if user is authenticated in the session, carry on
+	if(req.user.id_users_type == 1)
+      return next();
+	// if they aren't redirect them to the home page
+	res.json({success:4,error_msj:"no esta autenticado"});
 }
 
 
@@ -93,7 +111,7 @@ function isLoggedIn(req, res, next) {
 		})
 	});
 
-	
+
 
 /**********************************/
 /**********************************/
@@ -322,7 +340,7 @@ if(req.body.id_users) {
 		});
 	});
 
-	
+
 
 
 	};
