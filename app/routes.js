@@ -124,7 +124,27 @@ function isAdmin(req, res, next) {
 
 	});
 
-	app.get('/list-users_type',function(req, res) {
+
+	app.post('/delete-materiales', isLoggedIn,function(req, res) {
+		connection.query("UPDATE materiales set activo = 0 where id = ?", [req.body.id], function (err, result) {
+		if (err) return res.json({success:0,error_msj:err});
+		res.json({success:1,result});
+		})
+	});
+
+	/*
+	app.post('/insert-user',isLoggedIn,function(req,res){
+		var datenow = new Date();
+		var arrayIns=[,req.body.nombre,req.body.apellido,req.body.dni,req.body.tipos_insercion,datenow,req.body.foto,req.body.estado,req.body.estado_acred];
+	  connection.query("INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?)",arrayIns ,function (err, result) {
+		if (err) return res.json({success:0,error_msj:"ha ocurrido un error al intentar insertar en la tabla users",err});
+		res.json({success:1,result});
+	  });
+
+	});
+*/
+
+	app.get('/list-users_type', isLoggedIn,function(req, res) {
 		connection.query("SELECT * FROM users_type", function (err, result) {
 		if (err) return res.json({success:0,error_msj:err});
 		res.json({success:1,result});
