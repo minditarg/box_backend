@@ -1,6 +1,7 @@
 // app/routes.js
 const nodemailer = require('nodemailer');
 var mysql = require('mysql');
+var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
 var dbconfig = require('../config/database');
 var connection = mysql.createConnection(dbconfig.connection);
@@ -16,6 +17,10 @@ var storage =   multer.diskStorage({
   }
 });
 var upload = multer({ storage : storage}).single('userPhoto');
+var bodyUrlencoded = bodyParser.urlencoded({
+	extended: true
+});
+var bodyJson = bodyParser.json()
 
 
 
@@ -33,7 +38,7 @@ module.exports = function(app, passport) {
 	});
 
 
-	app.post('/login-json',accessControl,	function(req, res) {
+	app.post('/login-json',bodyJson,accessControl,	function(req, res) {
   passport.authenticate('local-login', function(err, user, info) {
     if (err) { return res.json({success:0,error_msj:"no se pudo autenticar"},err) }
     if (!user) { return res.json({success:0,error_msj:"el usuario o contraseña son incorrectos"}) }
@@ -50,7 +55,7 @@ module.exports = function(app, passport) {
 });
 
 
-app.post('/signup-json',accessControl,	function(req, res) {
+app.post('/signup-json',bodyJson,accessControl,	function(req, res) {
 passport.authenticate('local-signup', function(err, user, info) {
   if (err) { return res.json({success:0,error_msj:"no se pudo autenticar"},err) }
   if (!user) { return res.json({success:0,error_msj:"Posible nombre de usuario duplicado"}) }
@@ -58,17 +63,31 @@ passport.authenticate('local-signup', function(err, user, info) {
     return res.json({success:1,user});
 
 }) (req, res);
+
 });
 
 
-app.get('/list-users',isLoggedIn,isAdmin,function(req,res){
+app.get('/list-users/:idUser',function(req,res){
+  var idUser = req.params.idUser;
+  connection.query("SELECT * FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id WHERE u.id = ?",[idUser] ,function (err, result) {
+    if (err) return res.json({success:0,error_msj:err});
+    res.json({success:1,result});
+  });
 
-	connection.query("SELECT * FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id ", function (err, result) {
+  });
+
+app.get('/list-users',function(req,res){
+	connection.query("SELECT ut.*,u.* FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id ", function (err, result) {
+
 	  if (err) return res.json({success:0,error_msj:err});
 	  res.json({success:1,result});
 	});
 
+
+
   });
+
+
 
 // route middleware to make sure
 function isLoggedIn(req, res, next) {
@@ -102,13 +121,15 @@ function isAdmin(req, res, next) {
 		if (err) return res.json({success:0,error_msj:err});
 		res.json({success:1,result});
 		})
+
 	});
 
-	app.get('/list-users_type', isLoggedIn,function(req, res) {
+	app.get('/list-users_type',function(req, res) {
 		connection.query("SELECT * FROM users_type", function (err, result) {
 		if (err) return res.json({success:0,error_msj:err});
 		res.json({success:1,result});
 		})
+
 	});
 
 
@@ -118,7 +139,7 @@ function isAdmin(req, res, next) {
 /**********************************/
 /**********************************/
 
-app.post('/imagen',isLoggedIn,function(req,res){
+app.post('/imagen',bodyJson,isLoggedIn,function(req,res){
     upload(req,res,function(err,file) {
         if(err) {
             return res.json({success:0,error_msj:"ocurrió un error al subir la imagen",err});

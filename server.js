@@ -5,7 +5,7 @@
 var express  = require('express');
 var session  = require('express-session');
 var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+
 var morgan = require('morgan');
 var app      = express();
 var port     = process.env.PORT || 3600 ;
@@ -29,10 +29,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 // set up our express application
 app.use(morgan('dev')); // log every request to the console
 app.use(cookieParser()); // read cookies (needed for auth)
-app.use(bodyParser.urlencoded({
-	extended: true
-}));
-app.use(bodyParser.json());
+
 
 app.set('view engine', 'ejs'); // set up ejs for templating
 
