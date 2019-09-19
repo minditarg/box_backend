@@ -83,8 +83,20 @@ app.get('/list-users',function(req,res){
 	  res.json({success:1,result});
 	});
 
+  });
 
+  app.post('/update-user',bodyJson,function(req,res){
+  if(req.body.id) {
+  	var id_users = parseInt(req.body.id);
+  	var objectoUpdate = {nombre: req.body.nombre,id_users_type:req.body.id_users_type};
+    connection.query("UPDATE users SET ? where id = ?", [objectoUpdate,id_users],function (err, result) {
+      if (err) return res.json({success:0,error_msj:"ha ocurrido un error al intentar actualizar users",err});
+      res.json({success:1,result});
+    });
+  } else {
+  	res.json({success:0,error_msj:"el id de la tabla users no esta ingresado"})
 
+  }
   });
 
 
@@ -144,7 +156,7 @@ function isAdmin(req, res, next) {
 	});
 */
 
-	app.get('/list-users_type', isLoggedIn,function(req, res) {
+	app.get('/list-users_type',function(req, res) {
 		connection.query("SELECT * FROM users_type", function (err, result) {
 		if (err) return res.json({success:0,error_msj:err});
 		res.json({success:1,result});
