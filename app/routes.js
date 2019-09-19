@@ -116,8 +116,8 @@ function isAdmin(req, res, next) {
 	});
 
 
-	app.get('/list-materiales', isLoggedIn,function(req, res) {
-		connection.query("SELECT * FROM materiales", function (err, result) {
+	app.get('/list-insumos', isLoggedIn,function(req, res) {
+		connection.query("SELECT * FROM insumos", function (err, result) {
 		if (err) return res.json({success:0,error_msj:err});
 		res.json({success:1,result});
 		})
@@ -125,8 +125,8 @@ function isAdmin(req, res, next) {
 	});
 
 
-	app.post('/delete-materiales', isLoggedIn,function(req, res) {
-		connection.query("UPDATE materiales set activo = 0 where id = ?", [req.body.id], function (err, result) {
+	app.post('/delete-insumos', isLoggedIn,function(req, res) {
+		connection.query("UPDATE insumos set activo = 0 where id = ?", [req.body.id], function (err, result) {
 		if (err) return res.json({success:0,error_msj:err});
 		res.json({success:1,result});
 		})
