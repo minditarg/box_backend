@@ -138,12 +138,37 @@ function isAdmin(req, res, next) {
 
 
 	app.post('/delete-insumos', isLoggedIn,function(req, res) {
-		connection.query("UPDATE insumos set activo = 0 where id = ?", [req.body.id], function (err, result) {
+		//console.log("AAAAAAAAAAAAA");
+		connection.query("UPDATE insumos set activo = 0 where id = ?", [req.id], function (err, result) {
 		if (err) return res.json({success:0,error_msj:err});
 		res.json({success:1,result});
 		})
 	});
 
+	// app.post('/insert-user',isLoggedIn,function(req,res){
+	// 	var datenow = new Date();
+	// 	var arrayIns=[,req.body.nombre,req.body.apellido,req.body.dni,req.body.tipos_insercion,datenow,req.body.foto,req.body.estado,req.body.estado_acred];
+	//   connection.query("INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?)",arrayIns ,function (err, result) {
+	// 	if (err) return res.json({success:0,error_msj:"ha ocurrido un error al intentar insertar en la tabla users",err});
+	// 	res.json({success:1,result});
+	//   });
+	
+	// });
+	
+
+	app.post('/insert-insumos', isLoggedIn,function(req, res) {
+	//	console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR");
+		//console.log("req.codigo:" + req.body.codigo);
+		var arrayIns=[,req.body.codigo, req.body.descripcion, 1];
+		connection.query("INSERT INTO insumos VALUES (?,?,?,?)", arrayIns, function (err, result) {
+		//connection.query("SELECT * FROM users_type", function (err, result) {
+			if (err) return res.json({success:0,error_msj:"ha ocurrido un error al intentar insertar un insumo", err});
+		res.json({success:1,result});
+		})
+	});
+	
+	//INSERT INTO `boxrental`.`insumos` (`codigo`, `descripcion`) VALUES ('pla', 'placa 100');
+	
 	/*
 	app.post('/insert-user',isLoggedIn,function(req,res){
 		var datenow = new Date();
