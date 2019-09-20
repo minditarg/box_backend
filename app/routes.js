@@ -128,7 +128,7 @@ function isAdmin(req, res, next) {
 	});
 
 
-	app.get('/list-insumos', isLoggedIn,function(req, res) {
+	app.get('/list-insumos',function(req, res) {
 		connection.query("SELECT * FROM insumos", function (err, result) {
 		if (err) return res.json({success:0,error_msj:err});
 		res.json({success:1,result});
@@ -137,7 +137,7 @@ function isAdmin(req, res, next) {
 	});
 
 
-	app.post('/delete-insumos', isLoggedIn,function(req, res) {
+	app.post('/delete-insumos',bodyJson,function(req, res) {
 		//console.log("AAAAAAAAAAAAA");
 		connection.query("UPDATE insumos set activo = 0 where id = ?", [req.id], function (err, result) {
 		if (err) return res.json({success:0,error_msj:err});
@@ -152,11 +152,11 @@ function isAdmin(req, res, next) {
 	// 	if (err) return res.json({success:0,error_msj:"ha ocurrido un error al intentar insertar en la tabla users",err});
 	// 	res.json({success:1,result});
 	//   });
-	
-	// });
-	
 
-	app.post('/insert-insumos', isLoggedIn,function(req, res) {
+	// });
+
+
+	app.post('/insert-insumos', bodyJson,function(req, res) {
 	//	console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR");
 		//console.log("req.codigo:" + req.body.codigo);
 		var arrayIns=[,req.body.codigo, req.body.descripcion, 1];
@@ -166,9 +166,9 @@ function isAdmin(req, res, next) {
 		res.json({success:1,result});
 		})
 	});
-	
+
 	//INSERT INTO `boxrental`.`insumos` (`codigo`, `descripcion`) VALUES ('pla', 'placa 100');
-	
+
 	/*
 	app.post('/insert-user',isLoggedIn,function(req,res){
 		var datenow = new Date();
