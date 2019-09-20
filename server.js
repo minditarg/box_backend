@@ -48,8 +48,12 @@ app.use(express.static('public'));
 require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
 
 app.all("/*", function(req, res) {
-    
-    apiProxy.web(req, res, {target: serverOne});
+
+    apiProxy.web(req, res, {target: serverOne},function (e) {
+    return res.status(500).send({
+       error: true,
+       message: e.message
+    })})
 });
 
 // launch ======================================================================
