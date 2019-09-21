@@ -161,10 +161,12 @@ module.exports = function (app, passport) {
 	});
 
 
+
+	///INSUMOS///
 	app.get('/list-insumos', function (req, res) {
 
 		try {
-			connection.query("SELECT * FROM insumos", function (err, result) {
+			connection.query("SELECT * FROM insumos WHERE activo=1", function (err, result) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 
@@ -181,7 +183,7 @@ module.exports = function (app, passport) {
 
 	app.post('/delete-insumos', bodyJson, function (req, res) {
 		try {
-			connection.query("UPDATE insumos set activo = 0 where id = ?", [req.id], function (err, result) {
+			connection.query("UPDATE insumos set activo = 0 where id = ?", [req.body.id], function (err, result) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 			})
@@ -192,16 +194,6 @@ module.exports = function (app, passport) {
     })
 		 }
 	});
-
-	// app.post('/insert-user',isLoggedIn,function(req,res){
-	// 	var datenow = new Date();
-	// 	var arrayIns=[,req.body.nombre,req.body.apellido,req.body.dni,req.body.tipos_insercion,datenow,req.body.foto,req.body.estado,req.body.estado_acred];
-	//   connection.query("INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?)",arrayIns ,function (err, result) {
-	// 	if (err) return res.json({success:0,error_msj:"ha ocurrido un error al intentar insertar en la tabla users",err});
-	// 	res.json({success:1,result});
-	//   });
-
-	// });
 
 
 	app.post('/insert-insumos', bodyJson, function (req, res) {
@@ -219,6 +211,58 @@ module.exports = function (app, passport) {
     })
 		 }
 	});
+	///INSUMOS///
+
+	///PEDIDOS///
+	app.get('/list-pedidos', function (req, res) {
+
+		try {
+			connection.query("SELECT * FROM pedidos p INNER JOIN users u ON p.id_user=u.id WHERE activo=1", function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+
+			})
+		} catch (e) { 
+			 return res.status(500).send({
+       error: true,
+       message: e.message
+    })
+		}
+
+	});
+
+
+	app.post('/delete-pedidos', bodyJson, function (req, res) {
+		try {
+			connection.query("UPDATE pedidos set activo = 0 where id = ?", [req.body.id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+			})
+		} catch (e) {
+			 return res.status(500).send({
+       error: true,
+       message: e.message
+    })
+		 }
+	});
+
+
+	app.post('/insert-pedidos', bodyJson, function (req, res) {
+		try {
+			var arrayIns = [, req.body.codigo, req.body.descripcion, 1];
+			connection.query("INSERT INTO pedidos VALUES (?,?,?,?)", arrayIns, function (err, result) {
+
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un pedido", err });
+				res.json({ success: 1, result });
+			})
+		} catch (e) {
+			 return res.status(500).send({
+       error: true,
+       message: e.message
+    })
+		 }
+	});
+	///PEDIDOS///
 
 	//INSERT INTO `boxrental`.`insumos` (`codigo`, `descripcion`) VALUES ('pla', 'placa 100');
 
