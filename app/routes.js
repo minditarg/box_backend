@@ -124,7 +124,7 @@ module.exports = function (app, passport) {
 				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
 
 			}
-		} catch (e) { 
+		} catch (e) {
 			 return res.status(500).send({
        error: true,
        message: e.message
@@ -163,7 +163,25 @@ module.exports = function (app, passport) {
 
 
 	///INSUMOS///
-	app.get('/list-insumos', function (req, res) {
+  app.get('/list-insumos/:idinsumo',function (req, res) {
+    var idInsumo = req.params.idinsumo;
+        try {
+          connection.query("SELECT * FROM insumos WHERE activo=1 && id = ?",[idInsumo], function (err, result) {
+            if (err) return res.json({ success: 0, error_msj: err });
+            res.json({ success: 1, result });
+
+          })
+        } catch (e) {
+             return res.status(500).send({
+             error: true,
+             message: e.message
+            })
+        }
+
+  });
+
+
+	app.get('/list-insumos',function (req, res) {
 
 		try {
 			connection.query("SELECT * FROM insumos WHERE activo=1", function (err, result) {
@@ -171,7 +189,7 @@ module.exports = function (app, passport) {
 				res.json({ success: 1, result });
 
 			})
-		} catch (e) { 
+		} catch (e) {
 			 return res.status(500).send({
        error: true,
        message: e.message
@@ -196,6 +214,7 @@ module.exports = function (app, passport) {
 	});
 
 
+
 	app.post('/insert-insumos', bodyJson, function (req, res) {
 		try {
 			var arrayIns = [, req.body.codigo, req.body.descripcion, 1];
@@ -211,6 +230,27 @@ module.exports = function (app, passport) {
     })
 		 }
 	});
+
+  app.post('/update-insumos', bodyJson, function (req, res) {
+		try {
+			if (req.body.id) {
+				var id_insumo = parseInt(req.body.id);
+				var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion };
+				connection.query("UPDATE insumos SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
+					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
+					res.json({ success: 1, result });
+				});
+			} else {
+				res.json({ success: 0, error_msj: "el id de la tabla insumo no esta ingresado" })
+
+			}
+		} catch (e) {
+			 return res.status(500).send({
+       error: true,
+       message: e.message
+    })
+		}
+	});
 	///INSUMOS///
 
 	///PEDIDOS///
@@ -222,7 +262,7 @@ module.exports = function (app, passport) {
 				res.json({ success: 1, result });
 
 			})
-		} catch (e) { 
+		} catch (e) {
 			 return res.status(500).send({
        error: true,
        message: e.message
@@ -284,7 +324,7 @@ module.exports = function (app, passport) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 			})
-		} catch (e) { 
+		} catch (e) {
 			 return res.status(500).send({
        error: true,
        message: e.message
