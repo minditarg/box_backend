@@ -40,42 +40,42 @@ module.exports = function (app, passport) {
 
 	app.post('/login-json', bodyJson, accessControl, function (req, res) {
 		try {
-		passport.authenticate('local-login', function (err, user, info) {
-			if (err) { return res.json({ success: 0, error_msj: "no se pudo autenticar" }, err) }
-			if (!user) { return res.json({ success: 0, error_msj: "el usuario o contraseña son incorrectos" }) }
-			req.logIn(user, function (err) {
-				if (err) { return res.json({ success: 0, error_msj: "no se pudo loguear" }, err) }
-				if (req.body.remember) {
-					req.session.cookie.maxAge = 1000 * 60 * 3;
-				} else {
-					req.session.cookie.expires = false;
-				}
-				return res.json({ success: 1, user });
-			});
-		})(req, res);
-		} catch(e) {
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+			passport.authenticate('local-login', function (err, user, info) {
+				if (err) { return res.json({ success: 0, error_msj: "no se pudo autenticar" }, err) }
+				if (!user) { return res.json({ success: 0, error_msj: "el usuario o contraseña son incorrectos" }) }
+				req.logIn(user, function (err) {
+					if (err) { return res.json({ success: 0, error_msj: "no se pudo loguear" }, err) }
+					if (req.body.remember) {
+						req.session.cookie.maxAge = 1000 * 60 * 3;
+					} else {
+						req.session.cookie.expires = false;
+					}
+					return res.json({ success: 1, user });
+				});
+			})(req, res);
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
 		}
 	});
 
 
 	app.post('/signup-json', bodyJson, accessControl, function (req, res) {
 		try {
-		passport.authenticate('local-signup', function (err, user, info) {
-			if (err) { return res.json({ success: 0, error_msj: "no se pudo autenticar" }, err) }
-			if (!user) { return res.json({ success: 0, error_msj: "Posible nombre de usuario duplicado" }) }
+			passport.authenticate('local-signup', function (err, user, info) {
+				if (err) { return res.json({ success: 0, error_msj: "no se pudo autenticar" }, err) }
+				if (!user) { return res.json({ success: 0, error_msj: "Posible nombre de usuario duplicado" }) }
 
-			return res.json({ success: 1, user });
+				return res.json({ success: 1, user });
 
-		})(req, res);
-		} catch(e) {
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+			})(req, res);
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
 		}
 
 	});
@@ -83,30 +83,30 @@ module.exports = function (app, passport) {
 
 	app.get('/list-users/:idUser', function (req, res) {
 		try {
-		var idUser = req.params.idUser;
-		connection.query("SELECT * FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id WHERE u.id = ?", [idUser], function (err, result) {
-			if (err) return res.json({ success: 0, error_msj: err });
-			res.json({ success: 1, result });
-		});
-		} catch(e){}
-		 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+			var idUser = req.params.idUser;
+			connection.query("SELECT * FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id WHERE u.id = ?", [idUser], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+			});
+		} catch (e) { }
+		return res.status(500).send({
+			error: true,
+			message: e.message
+		})
 	});
 
 	app.get('/list-users', function (req, res) {
 		try {
-		connection.query("SELECT ut.*,u.* FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id ", function (err, result) {
+			connection.query("SELECT ut.*,u.* FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id ", function (err, result) {
 
-			if (err) return res.json({ success: 0, error_msj: err });
-			res.json({ success: 1, result });
-		});
-		} catch(e){
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+			});
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
 		}
 
 	});
@@ -124,11 +124,11 @@ module.exports = function (app, passport) {
 				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
 
 			}
-		} catch (e) { 
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
 		}
 	});
 
@@ -171,11 +171,26 @@ module.exports = function (app, passport) {
 				res.json({ success: 1, result });
 
 			})
-		} catch (e) { 
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
+
+	});
+
+	app.get('/select-insumos/:id', function (req, res) {
+		try {
+			connection.query("SELECT * FROM insumos WHERE id=?", [req.params.id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+			})
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
 		}
 
 	});
@@ -188,11 +203,11 @@ module.exports = function (app, passport) {
 				res.json({ success: 1, result });
 			})
 		} catch (e) {
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
-		 }
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
 	});
 
 
@@ -205,11 +220,11 @@ module.exports = function (app, passport) {
 				res.json({ success: 1, result });
 			})
 		} catch (e) {
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
-		 }
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
 	});
 	///INSUMOS///
 
@@ -222,11 +237,11 @@ module.exports = function (app, passport) {
 				res.json({ success: 1, result });
 
 			})
-		} catch (e) { 
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
 		}
 
 	});
@@ -239,28 +254,62 @@ module.exports = function (app, passport) {
 				res.json({ success: 1, result });
 			})
 		} catch (e) {
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
-		 }
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
 	});
 
 
 	app.post('/insert-pedidos', bodyJson, function (req, res) {
 		try {
-			var arrayIns = [, req.body.codigo, req.body.descripcion, 1];
-			connection.query("INSERT INTO pedidos VALUES (?,?,?,?)", arrayIns, function (err, result) {
+			connection.beginTransaction(function(err) {
+				if (err) { throw err; }
 
-				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un pedido", err });
-				res.json({ success: 1, result });
-			})
+				var datenow = new Date();
+				var arrayIns = [, 1, req.body.codigo, req.body.descripcion, datenow, 1];
+				connection.query("INSERT INTO pedidos VALUES (?,?,?,?,?,?)", arrayIns, function (error, result) {
+					if (error) {
+					return connection.rollback(function() {
+					  throw error;
+					});
+				  }
+
+				console.log(result.insertId);
+				var insertedPedido = result.insertId;
+
+				var sql = "INSERT INTO pedidos_detalles (id_pedido, id_insumo, unidad, cantidad, activo) VALUES ?";
+				var values = [];
+				req.body.detalle.forEach(element => {
+					values.push([insertedPedido, element.id, 99, 83, 1]);
+				});
+				
+				  connection.query(sql, [values], function (error, results) {
+					
+					if (error) {
+					  return connection.rollback(function() {
+						throw error;
+					  });
+					}
+					connection.commit(function(err) {
+					  if (err) {
+						return connection.rollback(function() {
+						  throw err;
+						});
+					  }
+					  console.log('success!');
+					  res.json({ success: 1, results });
+					});
+				  });
+				});
+			  });
 		} catch (e) {
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
-		 }
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
 	});
 	///PEDIDOS///
 
@@ -281,14 +330,20 @@ module.exports = function (app, passport) {
 	app.get('/list-users_type', function (req, res) {
 		try {
 			connection.query("SELECT * FROM users_type", function (err, result) {
-				if (err) return res.json({ success: 0, error_msj: err });
-				res.json({ success: 1, result });
+				if (err) {
+					return res.json({ success: 0, error_msj: err });
+				}
+				else{
+
+					res.json({ success: 1, result });
+				}
+				
 			})
-		} catch (e) { 
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
 		}
 
 	});
