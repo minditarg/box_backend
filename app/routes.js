@@ -88,11 +88,12 @@ module.exports = function (app, passport) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 			});
-		} catch (e) { }
+		} catch (e) { 
 		return res.status(500).send({
 			error: true,
 			message: e.message
 		})
+		}
 	});
 
 	app.get('/list-users', function (req, res) {
@@ -232,8 +233,8 @@ module.exports = function (app, passport) {
 
 	app.post('/insert-insumos', bodyJson, function (req, res) {
 		try {
-			var arrayIns = [, req.body.codigo, req.body.descripcion, 1];
-			connection.query("INSERT INTO insumos VALUES (?,?,?,?)", arrayIns, function (err, result) {
+			var arrayIns = [req.body.codigo, req.body.descripcion, req.body.unidad, req.body.minimo, 1];
+			connection.query("INSERT INTO insumos (codigo, descripcion, unidad, minimo, activo) VALUES (?)", [arrayIns], function (err, result) {
 
 				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un insumo", err });
 				res.json({ success: 1, result });
@@ -250,7 +251,7 @@ module.exports = function (app, passport) {
 		try {
 			if (req.body.id) {
 				var id_insumo = parseInt(req.body.id);
-				var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion };
+				var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion, unidad: req.body.unidad, minimo: req.body.minimo };
 				connection.query("UPDATE insumos SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
 					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
 					res.json({ success: 1, result });
