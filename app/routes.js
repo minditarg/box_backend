@@ -323,7 +323,7 @@ module.exports = function (app, passport) {
 				var sql = "INSERT INTO pedidos_detalles (id_pedido, id_insumo, unidad, cantidad, activo) VALUES ?";
 				var values = [];
 				req.body.detalle.forEach(element => {
-					values.push([insertedPedido, element.id, 99, 83, 1]);
+					values.push([insertedPedido, element.id, 99, element.cantidad, 1]);
 				});
 
 				  connection.query(sql, [values], function (error, results) {
