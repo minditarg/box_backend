@@ -371,6 +371,22 @@ module.exports = function (app, passport) {
 	});
 	///PEDIDOS///
 
+
+	app.post('/ajuste-stock', bodyJson, function (req, res) {
+		try {
+			//console.log("req.body.cantidad ,req.body.id " + req.body.cantidad + " - " + req.body.id);
+			connection.query("INSERT INTO auditoria_stock (id_movimiento, cantidad, id_insumo) VALUES (?,?,?)", [3, req.body.cantidad ,req.body.codigo], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+			})
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
+	});
+
 	//INSERT INTO `boxrental`.`insumos` (`codigo`, `descripcion`) VALUES ('pla', 'placa 100');
 
 	/*
