@@ -181,7 +181,7 @@ module.exports = function (app, passport) {
   });
 
 
-	app.get('/list-insumos',function (req, res) {
+	app.get('/list-insumos',isLoggedIn,function (req, res) {
 
 		try {
 			connection.query("SELECT * FROM insumos WHERE activo=1", function (err, result) {
