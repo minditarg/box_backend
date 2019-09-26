@@ -182,6 +182,23 @@ module.exports = function (app, passport) {
 	});
 
 
+	app.get('/list-insumos-sin-cantidad', function (req, res) {
+
+		try {
+			connection.query("SELECT id, codigo, descripcion, activo, unidad, minimo FROM insumos WHERE activo=1", function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+
+			})
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
+
+	});
+
 	app.get('/list-insumos', function (req, res) {
 
 		try {
@@ -371,7 +388,7 @@ module.exports = function (app, passport) {
 	});
 	///PEDIDOS///
 
-
+	///AJUSTE STOCK///
 	app.post('/ajuste-stock', bodyJson, function (req, res) {
 		try {
 			//console.log("req.body.cantidad ,req.body.id " + req.body.cantidad + " - " + req.body.id);
@@ -386,6 +403,42 @@ module.exports = function (app, passport) {
 			})
 		}
 	});
+	///AJUSTE STOCK///
+
+	///MODULOS///
+	app.get('/list-modulos-produccion', function (req, res) {
+		try {
+			connection.query("SELECT id, codigo FROM modulos WHERE estado = 2", function (err, result) {
+
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+			});
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
+
+	});
+
+	app.get('/select-modulo/:id', bodyJson, function (req, res) {
+		try {
+			console.log("req: " + req.params.id);
+			connection.query("SELECT * FROM modulos WHERE id=?", [req.params.id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				console.log("resultado: " + result);
+				res.json({ success: 1, result });
+			})
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
+
+	});
+	///MODULOS///
 
 	//INSERT INTO `boxrental`.`insumos` (`codigo`, `descripcion`) VALUES ('pla', 'placa 100');
 
