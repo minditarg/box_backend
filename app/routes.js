@@ -88,11 +88,12 @@ module.exports = function (app, passport) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 			});
-		} catch (e) { }
-		return res.status(500).send({
-			error: true,
-			message: e.message
-		})
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
 	});
 
 	app.get('/list-users', function (req, res) {
@@ -125,10 +126,10 @@ module.exports = function (app, passport) {
 
 			}
 		} catch (e) {
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
 		}
 	});
 
@@ -163,25 +164,25 @@ module.exports = function (app, passport) {
 
 
 	///INSUMOS///
-  app.get('/list-insumos/:idinsumo',function (req, res) {
-    var idInsumo = req.params.idinsumo;
-        try {
-          connection.query("SELECT * FROM insumos WHERE activo=1 && id = ?",[idInsumo], function (err, result) {
-            if (err) return res.json({ success: 0, error_msj: err });
-            res.json({ success: 1, result });
+	app.get('/list-insumos/:idinsumo', function (req, res) {
+		var idInsumo = req.params.idinsumo;
+		try {
+			connection.query("SELECT * FROM insumos WHERE activo=1 && id = ?", [idInsumo], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
 
-          })
-        } catch (e) {
-             return res.status(500).send({
-             error: true,
-             message: e.message
-            })
-        }
+			})
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
 
-  });
+	});
 
 
-	app.get('/list-insumos',isLoggedIn,function (req, res) {
+	app.get('/list-insumos', function (req, res) {
 
 		try {
 			connection.query("SELECT * FROM insumos WHERE activo=1", function (err, result) {
@@ -232,8 +233,8 @@ module.exports = function (app, passport) {
 
 	app.post('/insert-insumos', bodyJson, function (req, res) {
 		try {
-			var arrayIns = [, req.body.codigo, req.body.descripcion, 1];
-			connection.query("INSERT INTO insumos VALUES (?,?,?,?)", arrayIns, function (err, result) {
+			var arrayIns = [req.body.codigo, req.body.descripcion, req.body.unidad, req.body.minimo, 1];
+			connection.query("INSERT INTO insumos (codigo, descripcion, unidad, minimo, activo) VALUES (?)", [arrayIns], function (err, result) {
 
 				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un insumo", err });
 				res.json({ success: 1, result });
@@ -246,11 +247,11 @@ module.exports = function (app, passport) {
 		}
 	});
 
-  app.post('/update-insumos', bodyJson, function (req, res) {
+	app.post('/update-insumos', bodyJson, function (req, res) {
 		try {
 			if (req.body.id) {
 				var id_insumo = parseInt(req.body.id);
-				var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion };
+				var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion, unidad: req.body.unidad, minimo: req.body.minimo };
 				connection.query("UPDATE insumos SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
 					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
 					res.json({ success: 1, result });
@@ -260,10 +261,10 @@ module.exports = function (app, passport) {
 
 			}
 		} catch (e) {
-			 return res.status(500).send({
-       error: true,
-       message: e.message
-    })
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
 		}
 	});
 	///INSUMOS///
@@ -304,46 +305,63 @@ module.exports = function (app, passport) {
 
 	app.post('/insert-pedidos', bodyJson, function (req, res) {
 		try {
-			connection.beginTransaction(function(err) {
+			connection.beginTransaction(function (err) {
 				if (err) { throw err; }
 
 				var datenow = new Date();
 				var arrayIns = [, 1, req.body.codigo, req.body.descripcion, datenow, 1];
 				connection.query("INSERT INTO pedidos VALUES (?,?,?,?,?,?)", arrayIns, function (error, result) {
 					if (error) {
-					return connection.rollback(function() {
-					  throw error;
-					});
-				  }
-
-				console.log(result.insertId);
-				var insertedPedido = result.insertId;
-
-				var sql = "INSERT INTO pedidos_detalles (id_pedido, id_insumo, unidad, cantidad, activo) VALUES ?";
-				var values = [];
-				req.body.detalle.forEach(element => {
-					values.push([insertedPedido, element.id, 99, 83, 1]);
-				});
-
-				  connection.query(sql, [values], function (error, results) {
-
-					if (error) {
-					  return connection.rollback(function() {
-						throw error;
-					  });
-					}
-					connection.commit(function(err) {
-					  if (err) {
-						return connection.rollback(function() {
-						  throw err;
+						return connection.rollback(function () {
+							throw error;
 						});
-					  }
-					  console.log('success!');
-					  res.json({ success: 1, results });
+					}
+
+					var insertedPedido = result.insertId;
+
+					var sql = "INSERT INTO pedidos_detalles (id_pedido, id_insumo, unidad, cantidad, activo) VALUES ?";
+					var values = [];
+					req.body.detalle.forEach(element => {
+						values.push([insertedPedido, element.id, 99, element.cantidad, 1]);
 					});
-				  });
+
+					connection.query(sql, [values], function (error, results) {
+
+						if (error) {
+							return connection.rollback(function () {
+								throw error;
+							});
+						}
+						var sql = "INSERT INTO auditoria_stock (id_movimiento,cantidad,id_user,fecha,id_pedido,id_insumo) VALUES ?";
+						var values = [];
+						req.body.detalle.forEach(element => {
+							values.push([1, element.cantidad, null, new Date(), insertedPedido, element.id]);
+						});
+
+						connection.query(sql, [values], function (error, results) {
+
+							if (error) {
+								return connection.rollback(function () {
+									throw error;
+								});
+							}
+
+
+
+
+							connection.commit(function (err) {
+								if (err) {
+									return connection.rollback(function () {
+										throw err;
+									});
+								}
+
+								res.json({ success: 1, results });
+							});
+						});
+					});
 				});
-			  });
+			});
 		} catch (e) {
 			return res.status(500).send({
 				error: true,
@@ -352,6 +370,22 @@ module.exports = function (app, passport) {
 		}
 	});
 	///PEDIDOS///
+
+
+	app.post('/ajuste-stock', bodyJson, function (req, res) {
+		try {
+			//console.log("req.body.cantidad ,req.body.id " + req.body.cantidad + " - " + req.body.id);
+			connection.query("INSERT INTO auditoria_stock (id_movimiento, cantidad, id_insumo) VALUES (?,?,?)", [3, req.body.cantidad ,req.body.codigo], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+			})
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
+	});
 
 	//INSERT INTO `boxrental`.`insumos` (`codigo`, `descripcion`) VALUES ('pla', 'placa 100');
 
@@ -373,7 +407,7 @@ module.exports = function (app, passport) {
 				if (err) {
 					return res.json({ success: 0, error_msj: err });
 				}
-				else{
+				else {
 
 					res.json({ success: 1, result });
 				}
