@@ -286,6 +286,40 @@ module.exports = function (app, passport) {
 	});
 	///INSUMOS///
 
+	///MODULOS///
+	app.get('/list-modulos', function (req, res) {
+
+		try {
+			connection.query("SELECT m.*, e.descripcion as descripcion_estado FROM modulos m inner join modulos_estados e on m.id_modulo_estado = e.id", function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+
+			})
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
+
+	});
+
+
+	app.post('/delete-modulos', bodyJson, function (req, res) {
+		try {
+			connection.query("UPDATE modulos set activo = 0 where id = ?", [req.body.id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+			})
+		} catch (e) {
+			return res.status(500).send({
+				error: true,
+				message: e.message
+			})
+		}
+	});
+/// MODULOS///
+
 	///PEDIDOS///
 	app.get('/list-pedidos', function (req, res) {
 
