@@ -12,9 +12,11 @@ module.exports = function (app,connection, passport) {
 
 
 	app.get('/me', function (req, res) {
-
 		var user = req.user;
-		res.json({ success: 1, user }); // load the index.ejs file
+		if (!req.isAuthenticated())
+			return res.json({ success: 3, error_msj: "no esta autenticado" });
+		// if they aren't redirect them to the home page
+		res.json({ success: 1, user});
 	});
 
   app.get('/list-users_type', checkConnection,function (req, res) {
