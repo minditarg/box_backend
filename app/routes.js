@@ -288,19 +288,17 @@ module.exports = function (app, passport) {
 
 	///PEDIDOS///
 	app.get('/list-pedidos', function (req, res) {
+    if(connection.state === 'disconnected'){
+     connection = mysql.createConnection(dbconfig.connection);
+    }
 
-		try {
 			connection.query("SELECT * FROM pedidos p INNER JOIN users u ON p.id_user=u.id WHERE activo=1", function (err, result) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 
 			})
-		} catch (e) {
-			return res.status(500).send({
-				error: true,
-				message: e.message
-			})
-		}
+
+		
 
 	});
 

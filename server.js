@@ -13,6 +13,10 @@ var port     = process.env.PORT || 3600 ;
 var passport = require('passport');
 var flash    = require('connect-flash');
 
+var mysql = require('mysql');
+var dbconfig = require('./config/database');
+var connection = mysql.createConnection(dbconfig.connection);
+
 var httpProxy = require('http-proxy');
 var apiProxy = httpProxy.createProxyServer();
 var serverOne = 'http://localhost:3000'
@@ -45,7 +49,14 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 app.use(express.static('public'));
 
 // routes ======================================================================
-require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
+//require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
+
+connection.query('USE ' + dbconfig.database);
+require('./app/routesIngresos.js')(app,connection, passport);
+require('./app/routesUsers.js')(app,connection, passport);
+require('./app/routesInsumos.js')(app,connection, passport);
+require('./app/routesStock.js')(app,connection, passport);
+
 
 app.all("/*", function(req, res) {
 
