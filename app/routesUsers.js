@@ -96,7 +96,7 @@ module.exports = function (app,connection, passport) {
 
 	});
 
-	app.post('/update-user', bodyJson,checkConnection, function (req, res) {
+	app.post('/update-user',isLoggedIn, bodyJson,checkConnection, function (req, res) {
 
 
 			if (req.body.id) {
@@ -144,5 +144,13 @@ module.exports = function (app,connection, passport) {
     next();
 
   }
+
+	function isLoggedIn(req, res, next) {
+		// if user is authenticated in the session, carry on
+		if (req.isAuthenticated())
+			return next();
+		// if they aren't redirect them to the home page
+		res.json({ success: 3, error_msj: "no esta autenticado" });
+	}
 
 }
