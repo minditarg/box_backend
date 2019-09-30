@@ -12,7 +12,7 @@ var connection = mysql.createConnection(dbconfig.connection);
 
 connection.query('USE ' + dbconfig.database);
 // expose this function to our app using module.exports
-module.exports = function(passport) {
+module.exports = function(passport,connection) {
 
     // =========================================================================
     // passport session setup ==================================================
@@ -27,6 +27,7 @@ module.exports = function(passport) {
 
     // used to deserialize the user
     passport.deserializeUser(function(id, done) {
+      checkConnection();
         connection.query("SELECT * FROM users WHERE id = ? ",[id], function(err, rows){
             done(err, rows[0]);
         });
@@ -49,6 +50,7 @@ module.exports = function(passport) {
         function(req, username, password, done) {
             // find a user whose email is the same as the forms email
             // we are checking to see if the user trying to login already exists
+            checkConnection();
             connection.query("SELECT * FROM users WHERE username = ?",[username], function(err, rows) {
                 if (err)
                     return done(err);
@@ -65,7 +67,6 @@ module.exports = function(passport) {
                     };
 
                     var insertQuery = "INSERT INTO users ( username, password,nombre,id_users_type ) values (?,?,?,?)";
-
                     connection.query(insertQuery,[newUserMysql.username, newUserMysql.password,newUserMysql.nombre,newUserMysql.id_users_type],function(err, rows) {
                         newUserMysql.id = rows.insertId;
 
@@ -91,6 +92,7 @@ module.exports = function(passport) {
             passReqToCallback : true // allows us to pass back the entire request to the callback
         },
         function(req, username, password, done) { // callback with email and password from our form
+          checkConnection();
             connection.query("SELECT * FROM users WHERE username = ?",[username], function(err, rows){
                 if (err)
                     return done(err);
@@ -110,7 +112,15 @@ module.exports = function(passport) {
 
 
 
+    function checkConnection() {
+      if(connection.state === 'disconnected'){
+       connection = mysql.createConnection(dbconfig.connection);
+       connection.query('USE ' + dbconfig.database);
+      }
 
+
+
+    }
 
 
 

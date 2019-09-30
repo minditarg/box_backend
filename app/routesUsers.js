@@ -83,8 +83,11 @@ module.exports = function (app,connection, passport) {
 	});
 
 	app.get('/list-users', checkConnection,function (req, res) {
-
-			connection.query("SELECT ut.*,u.* FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id ", function (err, result) {
+		var userMeId = 0;
+			if(req.user){
+					userMeId = req.user.id;
+			}
+			connection.query("SELECT ut.*,u.* FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id where u.id != ? ",[userMeId], function (err, result) {
 
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
@@ -112,7 +115,7 @@ module.exports = function (app,connection, passport) {
 
   app.get('/logout', function (req, res) {
 		req.logout();
-		res.redirect('/');
+		res.json({ success: 1, msj:"el usuario se ha cerrado sesión correctamente" });
 	});
 
   function checkConnection(req,res,next) {

@@ -5,7 +5,7 @@
 var express  = require('express');
 var session  = require('express-session');
 var cookieParser = require('cookie-parser');
-
+var path = require('path');
 var morgan = require('morgan');
 var app      = express();
 var port     = process.env.PORT || 3600 ;
@@ -26,7 +26,7 @@ var serverOne = 'http://localhost:3000'
 // configuration ===============================================================
 // connect to our database
 
-require('./config/passport')(passport); // pass passport for configuration
+require('./config/passport')(passport,connection); // pass passport for configuration
 
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -36,11 +36,11 @@ app.use(cookieParser()); // read cookies (needed for auth)
 
 
 app.set('view engine', 'ejs'); // set up ejs for templating
-
+app.set('trust proxy', 1);
 // required for passport
 app.use(session({
 	secret: 'vidyapathaisalwaysrunning',
-	resave: true,
+	resave: false,
 	saveUninitialized: true
  } )); // session secret
 app.use(passport.initialize());
@@ -56,8 +56,8 @@ require('./app/routesIngresos.js')(app,connection, passport);
 require('./app/routesUsers.js')(app,connection, passport);
 require('./app/routesInsumos.js')(app,connection, passport);
 require('./app/routesStock.js')(app,connection, passport);
-
-
+/////////////////////
+//para development
 app.all("/*", function(req, res) {
 
     apiProxy.web(req, res, {target: serverOne},function (e) {
@@ -66,6 +66,14 @@ app.all("/*", function(req, res) {
        message: e.message
     })})
 });
+//////////////////////
+///////////////////////////
+//para el server de produccion
+/*
+app.get('/*', function (req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+*/
 
 // launch ======================================================================
 app.listen(port);
