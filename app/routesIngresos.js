@@ -2,6 +2,7 @@ var mysql = require('mysql');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
 var dbconfig = require('../config/database');
+var moment = require('moment');
 
 var bodyUrlencoded = bodyParser.urlencoded({
 	extended: true
@@ -14,7 +15,7 @@ module.exports = function (app,connection, passport) {
   app.get('/list-ingresos', checkConnection,function (req, res) {
 
 
-      connection.query("SELECT * FROM ingresos i INNER JOIN users u ON i.id_user=u.id WHERE activo=1", function (err, result) {
+      connection.query("SELECT * FROM ingresos i INNER JOIN users u ON i.id_user=u.id WHERE i.activo=1", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
@@ -41,8 +42,9 @@ module.exports = function (app,connection, passport) {
       connection.beginTransaction(function (err) {
         if (err) { throw err; }
         var datenow = new Date();
-        var arrayIns = [, 1, req.body.codigo, req.body.descripcion, datenow, 1];
-        connection.query("INSERT INTO ingresos VALUES (?,?,?,?,?,?)", arrayIns, function (error, result) {
+      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+        var arrayIns = [, 1, req.body.identificador, req.body.proveedor, datenow, 1,req.body.fechaIdentificador];
+        connection.query("INSERT INTO ingresos VALUES (?,?,?,?,?,?,?)", arrayIns, function (error, result) {
           if (error) {
             return connection.rollback(function () {
               throw error;
