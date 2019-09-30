@@ -1,6 +1,7 @@
 var mysql = require('mysql');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
+var dbconfig = require('../config/database');
 
 var bodyUrlencoded = bodyParser.urlencoded({
 	extended: true
