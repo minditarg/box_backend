@@ -15,7 +15,7 @@ module.exports = function (app,connection, passport) {
   app.get('/list-ingresos', checkConnection,function (req, res) {
 
 
-      connection.query("SELECT * FROM ingresos i INNER JOIN users u ON i.id_user=u.id WHERE i.activo=1", function (err, result) {
+      connection.query("SELECT * FROM ingresos i INNER JOIN users u ON i.id_user=u.id WHERE i.activo=1 ORDER BY i.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
