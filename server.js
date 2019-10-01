@@ -2,6 +2,7 @@
 
 // set up ======================================================================
 // get all the tools we need
+var compression = require('compression');
 var express  = require('express');
 var session  = require('express-session');
 var cookieParser = require('cookie-parser');
@@ -31,6 +32,7 @@ require('./config/passport')(passport,connection); // pass passport for configur
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 // set up our express application
+app.use(compression());
 app.use(morgan('dev')); // log every request to the console
 app.use(cookieParser()); // read cookies (needed for auth)
 
