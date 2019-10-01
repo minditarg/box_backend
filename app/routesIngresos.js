@@ -14,14 +14,22 @@ module.exports = function (app,connection, passport) {
 
   app.get('/list-ingresos', checkConnection,function (req, res) {
 
-
-      connection.query("SELECT * FROM ingresos i INNER JOIN users u ON i.id_user=u.id WHERE i.activo=1 ORDER BY i.id DESC", function (err, result) {
+      connection.query("SELECT u.*,i.* FROM ingresos i INNER JOIN users u ON i.id_user=u.id WHERE i.activo=1 ORDER BY i.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
       })
 
+  });
 
+   app.get('/list-ingresos-detalles/:idIngreso/:cantidad', checkConnection,function (req, res) {
+     var idIngreso = parseInt(req.params.idIngreso);
+     var cantidad = parseInt(req.params.cantidad);
+      connection.query("SELECT id.cantidad,i.codigo,i.descripcion,i.unidad FROM ingresos_detalles id INNER JOIN insumos i ON i.id = id.id_insumo WHERE id.id_ingreso = ? LIMIT ?",[idIngreso,cantidad], function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
 
   });
 
@@ -53,10 +61,10 @@ module.exports = function (app,connection, passport) {
 
           var insertedIngreso = result.insertId;
 
-          var sql = "INSERT INTO ingresos_detalles (id_ingreso, id_insumo, unidad, cantidad, activo) VALUES ?";
+          var sql = "INSERT INTO ingresos_detalles (id_ingreso, id_insumo, cantidad, activo) VALUES ?";
           var values = [];
           req.body.detalle.forEach(element => {
-            values.push([insertedIngreso, element.id, 99, element.cantidad, 1]);
+            values.push([insertedIngreso, element.id, element.cantidad, 1]);
           });
 
           connection.query(sql, [values], function (error, results) {
