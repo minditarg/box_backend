@@ -14,7 +14,17 @@ module.exports = function (app,connection, passport) {
   app.post('/ajuste-stock', bodyJson,checkConnection, function (req, res) {
 
       //console.log("req.body.cantidad ,req.body.id " + req.body.cantidad + " - " + req.body.id);
-      connection.query("INSERT INTO auditoria_stock (id_movimiento, cantidad, id_insumo) VALUES (?,?,?)", [3, req.body.cantidad ,req.body.codigo], function (err, result) {
+      connection.query("INSERT INTO auditoria_stock (id_movimiento, cantidad, id_insumo,fecha) VALUES (?,?,?,?)", [3, req.body.cantidad ,req.body.codigo,new Date()], function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+      })
+
+  });
+
+  app.get('/detalle-stock/:idInsumo/:cantidadRegistros', checkConnection, function (req, res) {
+      var idInsumo = req.params.idInsumo;
+      var cantidadRegistros = parseInt(req.params.cantidadRegistros);
+      connection.query("SELECT m.descripcion, u.username,aus.fecha, aus.cantidad,i.identificador FROM auditoria_stock as aus LEFT JOIN ingresos as i ON aus.id_ingreso = i.id LEFT JOIN movimientos as m ON aus.id_movimiento = m.id LEFT JOIN users as u ON u.id = aus.id_user   WHERE aus.id_insumo = ? ORDER BY aus.id DESC LIMIT ?", [idInsumo,cantidadRegistros], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
       })
