@@ -12,14 +12,10 @@ module.exports = function (app,connection, passport) {
 
   app.get('/list-insumos/:idinsumo', checkConnection,function (req, res) {
     var idInsumo = req.params.idinsumo;
-
       connection.query("SELECT * FROM insumos WHERE activo=1 && id = ?", [idInsumo], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
-
       })
-
-
   });
 
 
@@ -35,14 +31,10 @@ module.exports = function (app,connection, passport) {
   });
 
   app.get('/list-insumos',checkConnection, function (req, res) {
-
       connection.query("SELECT * FROM insumos WHERE activo=1", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
-
       })
-
-
   });
 
   app.get('/select-insumos/:id', checkConnection,function (req, res) {
@@ -78,6 +70,7 @@ module.exports = function (app,connection, passport) {
 
   });
 
+
   app.post('/update-insumos', bodyJson,checkConnection, function (req, res) {
 
       if (req.body.id) {
@@ -93,6 +86,39 @@ module.exports = function (app,connection, passport) {
       }
 
   });
+
+  app.post('/insert-categorias', bodyJson,checkConnection, function (req, res) {
+
+    var arrayIns = [req.body.codigo, req.body.descripcion];
+    connection.query("INSERT INTO insumos_categorias (codigo, descripcion) VALUES (?)", [arrayIns], function (err, result) {
+
+      if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un insumo", err });
+      res.json({ success: 1, result });
+    })
+
+});
+
+app.get('/list-categorias',checkConnection, function (req, res) {
+  connection.query("SELECT * FROM insumos_categorias WHERE activo=1", function (err, result) {
+    if (err) return res.json({ success: 0, error_msj: err });
+    res.json({ success: 1, result });
+  })
+});
+
+app.post('/delete-categorias', bodyJson,checkConnection, function (req, res) {
+  connection.query("UPDATE insumos_categorias set activo = 0 where id = ?", [req.body.id], function (err, result) {
+    if (err) return res.json({ success: 0, error_msj: err });
+    res.json({ success: 1, result });
+  })
+});
+
+app.get('/list-categorias/:idcategoria', checkConnection,function (req, res) {
+  var idCategoria = req.params.idcategoria;
+    connection.query("SELECT * FROM insumos_categorias WHERE activo=1 && id = ?", [idCategoria], function (err, result) {
+      if (err) return res.json({ suidcategoriaccess: 0, error_msj: err });
+      res.json({ success: 1, result });
+    })
+});
 
   function checkConnection(req,res,next) {
     if(connection.state === 'disconnected'){
