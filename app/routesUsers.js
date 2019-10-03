@@ -11,12 +11,22 @@ var bodyJson = bodyParser.json()
 module.exports = function (app,connection, passport) {
 
 
-	app.get('/me', function (req, res) {
+	app.get('/me',checkConnection, function (req, res) {
 		var user = req.user;
 		if (!req.isAuthenticated())
 			return res.json({ success: 3, error_msj: "no esta autenticado" });
 		// if they aren't redirect them to the home page
-		res.json({ success: 1, user});
+		connection.query("SELECT * FROM users_type ut LEFT JOIN users_type_accesos uta ON ut.id=uta.id_user_type LEFT JOIN accesos a ON a.id = uta.id_acceso WHERE ut.id = ?",[user.id_users_type], function (err, result) {
+				if (err) {
+					return res.json({ success: 0, error_msj: err });
+				}
+				else {
+
+					res.json({ success: 1, user,result });
+				}
+		})
+
+		
 	});
 
   app.get('/list-users_type', checkConnection,function (req, res) {
