@@ -13,6 +13,7 @@ module.exports = function (app,connection, passport) {
 
 	app.get('/me',checkConnection, function (req, res) {
 		var user = req.user;
+		
 		if (!req.isAuthenticated())
 			return res.json({ success: 3, error_msj: "no esta autenticado" });
 		// if they aren't redirect them to the home page

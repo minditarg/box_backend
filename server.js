@@ -48,12 +48,16 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
-app.use(express.static('public'));
-
+//app.use(express.static('public'));
+app.use(function(req,res,next){
+     res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+  res.header('Expires', '-1');
+  res.header('Pragma', 'no-cache');
+  next();
+})
 // routes ======================================================================
 //require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
 
-connection.query('USE ' + dbconfig.database);
 require('./app/routesIngresos.js')(app,connection, passport);
 require('./app/routesUsers.js')(app,connection, passport);
 require('./app/routesInsumos.js')(app,connection, passport);
