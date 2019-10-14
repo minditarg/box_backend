@@ -99,7 +99,7 @@ module.exports = function (app,connection, passport) {
 
       if (req.body.id) {
         var id_insumo = parseInt(req.body.id);
-        var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion, unidad: req.body.unidad, minimo: req.body.minimo };
+        var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion, unidad: req.body.unidad, minimo: req.body.minimo, id_insumos_categorias: req.body.categoria, numero: req.body.numero };
         connection.query("UPDATE insumos SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
           if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
           res.json({ success: 1, result });
