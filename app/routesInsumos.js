@@ -58,15 +58,39 @@ module.exports = function (app,connection, passport) {
   });
 
 
+  app.post('/insert-categorias', bodyJson,checkConnection, function (req, res) {
+
+    var arrayIns = [req.body.codigo, req.body.descripcion];
+    connection.query("INSERT INTO insumos_categorias (codigo, descripcion) VALUES (?)", [arrayIns], function (err, result) {
+
+      if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un insumo", err });
+      res.json({ success: 1, result });
+    })
+
+});
 
   app.post('/insert-insumos', bodyJson,checkConnection, function (req, res) {
 
-      var arrayIns = [req.body.codigo, req.body.descripcion, req.body.unidad, req.body.minimo, 1];
-      connection.query("INSERT INTO insumos (codigo, descripcion, unidad, minimo, activo) VALUES (?)", [arrayIns], function (err, result) {
-
-        if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un insumo", err });
-        res.json({ success: 1, result });
+      var arrayIns = [req.body.codigo, req.body.descripcion, req.body.unidad, req.body.minimo, 1, req.body.categoria, req.body.numero];
+      
+      connection.query("SELECT * FROM insumos WHERE id_insumos_categorias = ? AND numero = ?", [req.body.categoria, req.body.numero], function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al chequear duplicidad de insumos", err });
+        else{
+          if(result.length > 1) {
+            return res.json({ success: 0, error_msj: "No se puede guardar, código ya utilizado. Ingrese otro.", err });  
+          }
+          else {
+            connection.query("INSERT INTO insumos (codigo, descripcion, unidad, minimo, activo, id_insumos_categorias, numero) VALUES (?)", [arrayIns], function (err, result) {
+              if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un insumo", err });
+              res.json({ success: 1, result });
+            })
+         }
+          
+        }
+        
       })
+      
+     
 
   });
 
@@ -86,6 +110,17 @@ module.exports = function (app,connection, passport) {
       }
 
   });
+
+
+  app.get('/get-siguiente/:idcategoria',checkConnection, function (req, res) {
+    var idCategoria = req.params.idcategoria;
+    connection.query("select max(numero)+1 as siguiente FROM boxrental.insumos where id_insumos_categorias = ?", [idCategoria], function (err, result) {
+      if (err) return res.json({ success: 0, error_msj: err });
+      res.json({ success: 1, result });
+    })
+  });
+
+  
 
   app.post('/insert-categorias', bodyJson,checkConnection, function (req, res) {
 
@@ -119,6 +154,24 @@ app.get('/list-categorias/:idcategoria', checkConnection,function (req, res) {
       res.json({ success: 1, result });
     })
 });
+
+app.post('/update-categorias', bodyJson,checkConnection, function (req, res) {
+
+  if (req.body.id) {
+    var id_insumo = parseInt(req.body.id);
+    var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion };
+    connection.query("UPDATE insumos_categorias SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
+      if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
+      res.json({ success: 1, result });
+    });
+  } else {
+    res.json({ success: 0, error_msj: "el id de la tabla insumos_categorias no esta ingresado" })
+
+  }
+
+});
+
+
 
   function checkConnection(req,res,next) {
     if(connection.state === 'disconnected'){
