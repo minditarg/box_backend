@@ -63,6 +63,7 @@ require('./app/routesUsers.js')(app,connection, passport);
 require('./app/routesInsumos.js')(app,connection, passport);
 require('./app/routesStock.js')(app,connection, passport);
 require('./app/routesModulos.js')(app,connection, passport);
+require('./app/routesPlantillas.js')(app,connection, passport);
 /////////////////////
 //para development
 app.all("/*", function(req, res) {
