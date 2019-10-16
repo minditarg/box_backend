@@ -14,7 +14,7 @@ module.exports = function (app,connection, passport) {
 
   app.get('/list-entregas', checkConnection,function (req, res) {
 
-      connection.query("SELECT u.*,e.* FROM entregas e INNER JOIN users u ON e.id_user=u.id WHERE e.activo=1 ORDER BY e.id DESC", function (err, result) {
+      connection.query("SELECT u.*,m.*,e.*,m.descripcion as mdescripcion FROM entregas e LEFT JOIN users u ON e.id_user=u.id LEFT JOIN modulos m ON m.id = e.id_modulo  WHERE e.activo=1 ORDER BY e.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
@@ -23,9 +23,9 @@ module.exports = function (app,connection, passport) {
   });
 
    app.get('/list-entregas-detalles/:idEntrega/:cantidad', checkConnection,function (req, res) {
-     var idIngreso = parseInt(req.params.idIngreso);
+     var idEntrega = parseInt(req.params.idEntrega);
      var cantidad = parseInt(req.params.cantidad);
-      connection.query("SELECT id.cantidad,i.codigo,i.descripcion,i.unidad FROM ingresos_detalles id INNER JOIN insumos i ON i.id = id.id_insumo WHERE id.id_ingreso = ? LIMIT ?",[idIngreso,cantidad], function (err, result) {
+      connection.query("SELECT ed.cantidad,i.codigo,i.descripcion,i.unidad FROM entregas_detalles ed INNER JOIN insumos i ON i.id = ed.id_insumo WHERE ed.id_entrega = ? LIMIT ?",[idEntrega,cantidad], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
