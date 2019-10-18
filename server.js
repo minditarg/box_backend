@@ -64,6 +64,7 @@ require('./app/routesInsumos.js')(app,connection, passport);
 require('./app/routesStock.js')(app,connection, passport);
 require('./app/routesModulos.js')(app,connection, passport);
 require('./app/routesEntregas.js')(app,connection, passport);
+require('./app/routesDevoluciones.js')(app,connection, passport);
 require('./app/routesPlantillas.js')(app,connection, passport);
 
 /////////////////////
