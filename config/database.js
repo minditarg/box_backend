@@ -9,7 +9,8 @@ module.exports = {
      'connection': {
         'host': '50.63.166.215',
         'user': 'matias',
-        'password': 'Holaardu'        
+        'password': 'Holaardu'  ,
+        'database': 'boxrental',      
     },
 	'database': 'boxrental',
     'users_table': 'users_admin'

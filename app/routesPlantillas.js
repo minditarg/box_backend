@@ -95,10 +95,10 @@ module.exports = function (app, connection, passport) {
 
 
   function checkConnection(req, res, next) {
-    if (connection.state === 'disconnected') {
+
       connection = mysql.createConnection(dbconfig.connection);
-      connection.query('USE ' + dbconfig.database);
-    }
+      
+
 
     next();
 

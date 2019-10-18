@@ -14,7 +14,7 @@ module.exports = function (app,connection, passport) {
 
   app.get('/list-ingresos', checkConnection,function (req, res) {
 
-      connection.query("SELECT u.*,i.* FROM ingresos i INNER JOIN users u ON i.id_user=u.id WHERE i.activo=1 ORDER BY i.id DESC", function (err, result) {
+      connection.query("SELECT u.*,i.* FROM ingresos i LEFT JOIN users u ON i.id_user=u.id WHERE i.activo=1 ORDER BY i.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
@@ -50,8 +50,12 @@ module.exports = function (app,connection, passport) {
       connection.beginTransaction(function (err) {
         if (err) { throw err; }
         var datenow = new Date();
+				var userId = null;
+				if(req.user){
+					userId = req.user.id;
+				}
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-        var arrayIns = [, 1, req.body.identificador, req.body.proveedor, datenow, 1,req.body.fechaIdentificador];
+        var arrayIns = [, userId, req.body.referencia, req.body.proveedor, datenow,1 ,req.body.fechaReferencia];
         connection.query("INSERT INTO ingresos VALUES (?,?,?,?,?,?,?)", arrayIns, function (error, result) {
           if (error) {
             return connection.rollback(function () {
@@ -109,10 +113,10 @@ module.exports = function (app,connection, passport) {
 
 
   function checkConnection(req,res,next) {
-    if(connection.state === 'disconnected'){
+    //if(connection.state === 'disconnected'){
      connection = mysql.createConnection(dbconfig.connection);
      connection.query('USE ' + dbconfig.database);
-    }
+  //  }
 
     next();
 

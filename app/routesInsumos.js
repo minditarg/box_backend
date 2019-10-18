@@ -72,12 +72,12 @@ module.exports = function (app,connection, passport) {
   app.post('/insert-insumos', bodyJson,checkConnection, function (req, res) {
 
       var arrayIns = [req.body.codigo, req.body.descripcion, req.body.unidad, req.body.minimo, 1, req.body.categoria, req.body.numero];
-      
+
       connection.query("SELECT * FROM insumos WHERE id_insumos_categorias = ? AND numero = ?", [req.body.categoria, req.body.numero], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al chequear duplicidad de insumos", err });
         else{
           if(result.length > 1) {
-            return res.json({ success: 0, error_msj: "No se puede guardar, código ya utilizado. Ingrese otro.", err });  
+            return res.json({ success: 0, error_msj: "No se puede guardar, código ya utilizado. Ingrese otro.", err });
           }
           else {
             connection.query("INSERT INTO insumos (codigo, descripcion, unidad, minimo, activo, id_insumos_categorias, numero) VALUES (?)", [arrayIns], function (err, result) {
@@ -85,12 +85,12 @@ module.exports = function (app,connection, passport) {
               res.json({ success: 1, result });
             })
          }
-          
+
         }
-        
+
       })
-      
-     
+
+
 
   });
 
@@ -120,7 +120,7 @@ module.exports = function (app,connection, passport) {
     })
   });
 
-  
+
 
   app.post('/insert-categorias', bodyJson,checkConnection, function (req, res) {
 
@@ -174,10 +174,10 @@ app.post('/update-categorias', bodyJson,checkConnection, function (req, res) {
 
 
   function checkConnection(req,res,next) {
-    if(connection.state === 'disconnected'){
+
      connection = mysql.createConnection(dbconfig.connection);
-     connection.query('USE ' + dbconfig.database);
-    }
+     
+
 
     next();
 

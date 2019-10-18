@@ -14,7 +14,7 @@ module.exports = function (app,connection, passport) {
 
   app.get('/list-entregas', checkConnection,function (req, res) {
 
-      connection.query("SELECT u.*,m.*,e.*,m.descripcion as mdescripcion FROM entregas e LEFT JOIN users u ON e.id_user=u.id LEFT JOIN modulos m ON m.id = e.id_modulo  WHERE e.activo=1 ORDER BY e.id DESC", function (err, result) {
+      connection.query("SELECT u.*,m.*,e.*,m.descripcion as mdescripcion, mov.descripcion_id FROM entregas e LEFT JOIN users u ON e.id_user=u.id LEFT JOIN modulos m ON m.id = e.id_modulo LEFT JOIN movimientos mov ON mov.id = e.id_movimiento  WHERE e.activo=1 ORDER BY e.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
@@ -113,10 +113,10 @@ module.exports = function (app,connection, passport) {
 
 
   function checkConnection(req,res,next) {
-    if(connection.state === 'disconnected'){
+
      connection = mysql.createConnection(dbconfig.connection);
-     connection.query('USE ' + dbconfig.database);
-    }
+
+
 
     next();
 
