@@ -96,13 +96,25 @@ module.exports = function (app,connection, passport) {
 
 
   app.post('/update-insumos', bodyJson,checkConnection, function (req, res) {
+			var userId = null;
+			if(req.user)
+			userId = req.user.id;
 
       if (req.body.id) {
         var id_insumo = parseInt(req.body.id);
-        var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion, unidad: req.body.unidad, minimo: req.body.minimo, id_insumos_categorias: req.body.categoria, numero: req.body.numero };
+        var objectoUpdate = { codigo: req.body.codigo, descripcion: req.body.descripcion, unidad: req.body.unidad, id_insumos_categorias: req.body.categoria, numero: req.body.numero };
         connection.query("UPDATE insumos SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
           if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
-          res.json({ success: 1, result });
+					if(req.body.minimo){
+						var arrayUpdate =[5,userId, new Date(),id_insumo,req.body.minimo];
+					connection.query("INSERT INTO auditoria_stock (id_movimiento,id_user,fecha,id_insumo,minimo) VALUES (?)", [arrayUpdate], function (err, result) {
+						if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar auditoria stock", err });
+						res.json({ success: 1, result });
+					})
+				}else{
+					res.json({ success: 1, result });
+				}
+
         });
       } else {
         res.json({ success: 0, error_msj: "el id de la tabla insumo no esta ingresado" })
@@ -176,7 +188,7 @@ app.post('/update-categorias', bodyJson,checkConnection, function (req, res) {
   function checkConnection(req,res,next) {
 
      connection = mysql.createConnection(dbconfig.connection);
-     
+
 
 
     next();

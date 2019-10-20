@@ -14,7 +14,7 @@ module.exports = function (app,connection, passport) {
 
   app.get('/list-ingresos', checkConnection,function (req, res) {
 
-      connection.query("SELECT u.*,i.* FROM ingresos i LEFT JOIN users u ON i.id_user=u.id WHERE i.activo=1 ORDER BY i.id DESC", function (err, result) {
+      connection.query("SELECT u.*,i.*,m.descripcion_id FROM ingresos i LEFT JOIN users u ON i.id_user=u.id LEFT JOIN movimientos m ON m.id = i.id_movimiento WHERE i.activo=1 ORDER BY i.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
@@ -55,8 +55,8 @@ module.exports = function (app,connection, passport) {
 					userId = req.user.id;
 				}
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-        var arrayIns = [, userId, req.body.referencia, req.body.proveedor, datenow,1 ,req.body.fechaReferencia];
-        connection.query("INSERT INTO ingresos VALUES (?,?,?,?,?,?,?)", arrayIns, function (error, result) {
+        var arrayIns = [userId, req.body.referencia, req.body.proveedor, datenow,1 ,req.body.fechaReferencia];
+        connection.query("INSERT INTO ingresos (id_user,referencia,proveedor,fecha,activo,fecha_referencia) VALUES (?,?,?,?,?,?)", arrayIns, function (error, result) {
           if (error) {
             return connection.rollback(function () {
               throw error;
