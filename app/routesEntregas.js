@@ -54,9 +54,9 @@ module.exports = function (app,connection, passport) {
 				if(req.user)
 				userId = req.user.id;
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-        var arrayIns = [req.body.descripcion,req.body.id_modulo,userId,datenow];
-				var arrayAtrib = ["decripcion","id_modulo","id_user","fecha"];
-        connection.query("INSERT INTO entregas (descripcion,id_modulo,id_user,fecha) VALUES (?)", [arrayIns], function (error, result) {
+        var arrayIns = [req.body.referencia,req.body.comentario,req.body.id_modulo,userId,datenow];
+				var arrayAtrib = ["referencia","comentario","id_modulo","id_user","fecha"];
+        connection.query("INSERT INTO entregas (referencia,comentario,id_modulo,id_user,fecha) VALUES (?)", [arrayIns], function (error, result) {
           if (error) {
             return connection.rollback(function () {
               throw error;
