@@ -113,10 +113,10 @@ module.exports = function(passport,connection) {
 
 
     function checkConnection() {
-      if(connection.state === 'disconnected'){
-       connection = mysql.createConnection(dbconfig.connection);
-       connection.query('USE ' + dbconfig.database);
-      }
+     // if(connection.state === 'disconnected'){
+      // connection = mysql.createConnection(dbconfig.connection);
+       console.log(connection.state);
+    //  }
 
 
 

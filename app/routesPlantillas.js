@@ -78,6 +78,23 @@ module.exports = function (app, connection, passport) {
 
   });
 
+  app.get('/list-plantillas-insumos/:idPlantilla', checkConnection, function (req, res) {
+    var idPlantilla = req.params.idPlantilla;
+    try {
+      connection.query("SELECT pi.*,i.* FROM plantillas_insumos pi LEFT JOIN insumos i ON i.id = pi.id_insumo  WHERE pi.activo = 1 AND pi.id_plantilla = ? ",[idPlantilla], function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
 
   app.post('/delete-plantilla', bodyJson, checkConnection, function (req, res) {
     try {
@@ -95,8 +112,8 @@ module.exports = function (app, connection, passport) {
 
 
   function checkConnection(req, res, next) {
-
-      connection = mysql.createConnection(dbconfig.connection);
+    console.log(connection.state);
+    //  connection = mysql.createConnection(dbconfig.connection);
       
 
 

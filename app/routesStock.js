@@ -35,8 +35,8 @@ module.exports = function (app, connection, passport) {
 
 
   function checkConnection(req, res, next) {
-
-      connection = mysql.createConnection(dbconfig.connection);
+    console.log(connection.state);
+     // connection = mysql.createConnection(dbconfig.connection);
 
 
 

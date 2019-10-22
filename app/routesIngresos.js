@@ -25,7 +25,7 @@ module.exports = function (app,connection, passport) {
    app.get('/list-ingresos-detalles/:idIngreso/:cantidad', checkConnection,function (req, res) {
      var idIngreso = parseInt(req.params.idIngreso);
      var cantidad = parseInt(req.params.cantidad);
-      connection.query("SELECT id.cantidad,i.codigo,i.descripcion,i.unidad FROM ingresos_detalles id INNER JOIN insumos i ON i.id = id.id_insumo WHERE id.id_ingreso = ? LIMIT ?",[idIngreso,cantidad], function (err, result) {
+      connection.query("SELECT id.cantidad,ic.codigo,i.numero,i.descripcion,i.unidad FROM ingresos_detalles id LEFT JOIN insumos i ON i.id = id.id_insumo LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE id.id_ingreso = ? LIMIT ?",[idIngreso,cantidad], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
@@ -113,9 +113,11 @@ module.exports = function (app,connection, passport) {
 
 
   function checkConnection(req,res,next) {
+    
+    console.log(connection.state);
     //if(connection.state === 'disconnected'){
-     connection = mysql.createConnection(dbconfig.connection);
-     connection.query('USE ' + dbconfig.database);
+    // connection = mysql.createConnection(dbconfig.connection);
+   
   //  }
 
     next();

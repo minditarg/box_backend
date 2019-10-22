@@ -26,7 +26,7 @@ module.exports = function (app,connection, passport) {
 					res.json({ success: 1, user,result });
 				}
 		})
-		connection.end();
+	
 
 
 	});
@@ -44,7 +44,7 @@ module.exports = function (app,connection, passport) {
 				}
 
 			})
-			connection.end();
+		
 
 
 	});
@@ -92,7 +92,7 @@ module.exports = function (app,connection, passport) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 			});
-			connection.end();
+		
 
 	});
 
@@ -106,7 +106,7 @@ module.exports = function (app,connection, passport) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 			});
-			connection.end();
+			
 
 
 	});
@@ -121,7 +121,7 @@ module.exports = function (app,connection, passport) {
 					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
 					res.json({ success: 1, result });
 				});
-				connection.end();
+				
 			} else {
 				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
 
@@ -139,7 +139,7 @@ module.exports = function (app,connection, passport) {
 					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
 					res.json({ success: 1, result });
 				});
-				connection.end();
+				
 			} else {
 				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
 
@@ -153,7 +153,8 @@ module.exports = function (app,connection, passport) {
 	});
 
   function checkConnection(req,res,next) {
-     connection = mysql.createConnection(dbconfig.connection);
+	  console.log(connection.state);
+     //connection = mysql.createConnection(dbconfig.connection);
 
 
     next();
