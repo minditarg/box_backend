@@ -29,7 +29,7 @@ module.exports = function (app, connection, passport) {
 
         var insertedId = result.insertId;
 
-        var sql = "INSERT INTO plantillas_insumos (id_plantilla, id_insumo, cantidad_asignada, activo) VALUES ?";
+        var sql = "INSERT INTO plantillas_insumos (id_plantilla, id_insumo, cantidad, activo) VALUES ?";
         var values = [];
         req.body.detalle.forEach(element => {
           values.push([insertedId, element.id, element.cantidad, 1]);
@@ -80,18 +80,21 @@ module.exports = function (app, connection, passport) {
 
   app.get('/list-plantillas-insumos/:idPlantilla', checkConnection, function (req, res) {
     var idPlantilla = req.params.idPlantilla;
-    try {
-      connection.query("SELECT pi.*,i.* FROM plantillas_insumos pi LEFT JOIN insumos i ON i.id = pi.id_insumo  WHERE pi.activo = 1 AND pi.id_plantilla = ? ",[idPlantilla], function (err, result) {
+
+    connection.query("SELECT * FROM plantillas p  WHERE p.activo = 1 AND p.id = ? ", [idPlantilla], function (err, resultPlantilla) {
+      if (err) return res.json({ success: 0, error_msj: err });
+
+      connection.query("SELECT i.*,pi.* FROM plantillas_insumos pi LEFT JOIN insumos i ON i.id = pi.id_insumo  WHERE pi.activo = 1 AND pi.id_plantilla = ? ", [idPlantilla], function (err, resultInsumos) {
         if (err) return res.json({ success: 0, error_msj: err });
-        res.json({ success: 1, result });
+        res.json({ success: 1, plantilla: resultPlantilla,insumos:resultInsumos });
 
       })
-    } catch (e) {
-      return res.status(500).send({
-        error: true,
-        message: e.message
-      })
-    }
+
+
+    })
+
+
+
 
   });
 
@@ -114,7 +117,7 @@ module.exports = function (app, connection, passport) {
   function checkConnection(req, res, next) {
     console.log(connection.state);
     //  connection = mysql.createConnection(dbconfig.connection);
-      
+
 
 
     next();
