@@ -60,6 +60,62 @@ module.exports = function (app, connection, passport) {
 
 
 
+  app.post('/update-plantilla', bodyJson, checkConnection, function (req, res) {
+
+    connection.beginTransaction(function (err) {
+      if (err) { throw err; }
+      var datenow = new Date();
+      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+      //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
+      var updObj = {
+        codigo: req.body.codigo,
+        descripcion: req.body.descripcion
+      }
+      connection.query("UPDATE plantillas SET ? WHERE id = ?", [updObj, req.body.id], function (error, result) {
+        if (error) {
+          return connection.rollback(function () {
+            throw error;
+          });
+        }
+
+        connection.query("DELETE FROM plantillas_insumos WHERE id_plantilla = ?", req.body.id, function (error, result) {
+          if (error) {
+            return connection.rollback(function () {
+              throw error;
+            });
+          }
+
+          var sql = "INSERT INTO plantillas_insumos (id_plantilla, id_insumo, cantidad, activo) VALUES ?";
+          var values = [];
+          req.body.detalle.forEach(element => {
+            values.push([req.body.id, element.id, element.cantidad, 1]);
+          });
+          connection.query(sql, [values], function (error, results) {
+
+            if (error) {
+              return connection.rollback(function () {
+                throw error;
+              });
+            }
+
+            connection.commit(function (err) {
+              if (err) {
+                return connection.rollback(function () {
+                  throw err;
+                });
+              }
+
+              res.json({ success: 1, results });
+            });
+          });
+        });
+      });
+    });
+
+  });
+
+
+
 
   app.get('/list-plantillas', checkConnection, function (req, res) {
 
@@ -84,9 +140,9 @@ module.exports = function (app, connection, passport) {
     connection.query("SELECT * FROM plantillas p  WHERE p.activo = 1 AND p.id = ? ", [idPlantilla], function (err, resultPlantilla) {
       if (err) return res.json({ success: 0, error_msj: err });
 
-      connection.query("SELECT i.*,pi.* FROM plantillas_insumos pi LEFT JOIN insumos i ON i.id = pi.id_insumo  WHERE pi.activo = 1 AND pi.id_plantilla = ? ", [idPlantilla], function (err, resultInsumos) {
+      connection.query("SELECT i.*,pi.cantidad FROM plantillas_insumos pi LEFT JOIN insumos i ON i.id = pi.id_insumo  WHERE pi.activo = 1 AND pi.id_plantilla = ? ", [idPlantilla], function (err, resultInsumos) {
         if (err) return res.json({ success: 0, error_msj: err });
-        res.json({ success: 1, plantilla: resultPlantilla,insumos:resultInsumos });
+        res.json({ success: 1, plantilla: resultPlantilla, insumos: resultInsumos });
 
       })
 
