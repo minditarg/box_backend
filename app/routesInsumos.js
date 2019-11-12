@@ -39,7 +39,7 @@ module.exports = function (app,connection, passport) {
 
   app.get('/select-insumos/:id', checkConnection,function (req, res) {
 
-      connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE id=?", [req.params.id], function (err, result) {
+      connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.id=?", [req.params.id], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
       })
