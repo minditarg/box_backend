@@ -16,7 +16,14 @@ var flash    = require('connect-flash');
 
 var mysql = require('mysql');
 var dbconfig = require('./config/database');
-var connection = mysql.createConnection(dbconfig.connection);
+//var connection = mysql.createConnection(dbconfig.connection);
+var connection = mysql.createPool({
+  connectionLimit: 10,
+  host: '50.63.166.215',
+  user: 'matias',
+  password: 'Holaardu',
+  database: 'boxrental'
+})
 
 var httpProxy = require('http-proxy');
 var apiProxy = httpProxy.createProxyServer();

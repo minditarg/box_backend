@@ -14,15 +14,22 @@ module.exports = function (app, connection, passport) {
 
 
   app.post('/insert-plantilla', bodyJson, checkConnection, function (req, res) {
+    connection.getConnection(function(err, connection) {
+      if (err) {
+        connection.release();
+        throw err; }
 
     connection.beginTransaction(function (err) {
-      if (err) { throw err; }
+      if (err) {
+        connection.release();
+        throw err; }
       var datenow = new Date();
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
       var arrayIns = [req.body.codigo, req.body.descripcion, 1];
       connection.query("INSERT INTO plantillas (codigo, descripcion, activo) VALUES (?,?,?)", arrayIns, function (error, result) {
         if (error) {
           return connection.rollback(function () {
+            connection.release();
             throw error;
           });
         }
@@ -38,6 +45,7 @@ module.exports = function (app, connection, passport) {
 
           if (error) {
             return connection.rollback(function () {
+              connection.release();
               throw error;
             });
           }
@@ -45,16 +53,21 @@ module.exports = function (app, connection, passport) {
           connection.commit(function (err) {
             if (err) {
               return connection.rollback(function () {
+                connection.release();
                 throw err;
               });
-            }
+            } else {
 
             res.json({ success: 1, results });
+              connection.release();
+          }
           });
         });
       });
 
     });
+
+  })
 
   });
 
@@ -62,8 +75,14 @@ module.exports = function (app, connection, passport) {
 
   app.post('/update-plantilla', bodyJson, checkConnection, function (req, res) {
 
+    connection.getConnection(function(err, connection) {
+      if (err) {
+        connection.release();
+        throw err; }
     connection.beginTransaction(function (err) {
-      if (err) { throw err; }
+      if (err) {
+        connection.release();
+        throw err; }
       var datenow = new Date();
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
       //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
@@ -74,6 +93,7 @@ module.exports = function (app, connection, passport) {
       connection.query("UPDATE plantillas SET ? WHERE id = ?", [updObj, req.body.id], function (error, result) {
         if (error) {
           return connection.rollback(function () {
+            connection.release();
             throw error;
           });
         }
@@ -81,6 +101,7 @@ module.exports = function (app, connection, passport) {
         connection.query("DELETE FROM plantillas_insumos WHERE id_plantilla = ?", req.body.id, function (error, result) {
           if (error) {
             return connection.rollback(function () {
+              connection.release();
               throw error;
             });
           }
@@ -94,6 +115,7 @@ module.exports = function (app, connection, passport) {
 
             if (error) {
               return connection.rollback(function () {
+                connection.release();
                 throw error;
               });
             }
@@ -101,17 +123,19 @@ module.exports = function (app, connection, passport) {
             connection.commit(function (err) {
               if (err) {
                 return connection.rollback(function () {
+                  connection.release();
                   throw err;
                 });
-              }
-
+              } else {
+                connection.release();
               res.json({ success: 1, results });
+            }
             });
           });
         });
       });
     });
-
+  })
   });
 
 
