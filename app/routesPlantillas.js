@@ -260,9 +260,6 @@ module.exports = function (app, connection, passport) {
 
     })
 
-
-
-
   });
 
 
