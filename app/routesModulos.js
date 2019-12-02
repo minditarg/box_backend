@@ -68,7 +68,7 @@ module.exports = function (app,connection, passport) {
 
 				var insertedId = result.insertId;
 
-				var sql = "INSERT INTO modulos_insumos (id_modulo, id_insumo, cantidad_asignada, activo) VALUES ?";
+				var sql = "INSERT INTO modulos_insumos (id_modulo, id_insumo, cantidad, activo) VALUES ?";
 				var values = [];
 				req.body.detalle.forEach(element => {
 					values.push([insertedId, element.id, element.cantidad, 1]);
@@ -109,7 +109,7 @@ module.exports = function (app,connection, passport) {
 		connection.query("SELECT * FROM modulos m  WHERE m.activo = 1 AND m.id = ? ", [idModulo], function (err, resultModulo) {
 			if (err) return res.json({ success: 0, error_msj: err });
 
-			connection.query("SELECT i.*,mi.cantidad_asignada,mi.id as id_modulos_insumos,ic.codigo FROM modulos_insumos mi LEFT JOIN insumos i ON i.id = mi.id_insumo LEFT JOIN insumos_categorias ic ON i.id_insumos_categorias = ic.id  WHERE mi.activo = 1 AND mi.id_modulo = ? ", [idModulo], function (err, resultInsumos) {
+			connection.query("SELECT i.*,mi.cantidad,mi.id as id_modulos_insumos,ic.codigo FROM modulos_insumos mi LEFT JOIN insumos i ON i.id = mi.id_insumo LEFT JOIN insumos_categorias ic ON i.id_insumos_categorias = ic.id  WHERE mi.activo = 1 AND mi.id_modulo = ? ", [idModulo], function (err, resultInsumos) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, modulo: resultModulo, insumos: resultInsumos });
 
