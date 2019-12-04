@@ -46,6 +46,10 @@ module.exports = function (app,connection, passport) {
 
 
 	app.post('/insert-modulo', bodyJson, checkConnection, function (req, res) {
+		var idUser=null;
+		if(req.user)
+			idUser = req.user.id;
+
 		connection.getConnection(function(err, connection) {
 			if (err) {
 				connection.release();
@@ -57,8 +61,8 @@ module.exports = function (app,connection, passport) {
 				throw err; }
 			var datenow = new Date();
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-			var arrayIns = [req.body.chasis, req.body.descripcion];
-			connection.query("INSERT INTO modulos (chasis, descripcion) VALUES (?,?)", arrayIns, function (error, result) {
+			var arrayIns = [req.body.chasis, req.body.descripcion,'Cliente',idUser,1];
+			connection.query("CALL modulos_create (?,?,?,?,?)", arrayIns, function (error, result) {
 				if (error) {
 					return connection.rollback(function () {
 						connection.release();
@@ -66,21 +70,13 @@ module.exports = function (app,connection, passport) {
 					});
 				}
 
-				var insertedId = result.insertId;
+				var insertedId = result[0].id;
 
-				var sql = "INSERT INTO modulos_insumos (id_modulo, id_insumo, cantidad, activo) VALUES ?";
 				var values = [];
 				req.body.detalle.forEach(element => {
-					values.push([insertedId, element.id, element.cantidad, 1]);
+					values.push([element.cantidad,0,insertedId, element.id,1,idUser]);
 				});
-				connection.query(sql, [values], function (error, results) {
-
-					if (error) {
-						return connection.rollback(function () {
-							connection.release();
-							throw error;
-						});
-					}
+			recorrerArrayAgregar(values,0,req.body.id,connection,function(){
 
 					connection.commit(function (err) {
 						if (err) {
@@ -90,7 +86,7 @@ module.exports = function (app,connection, passport) {
 							});
 						} else {
 
-						res.json({ success: 1, results });
+						res.json({ success: 1 });
 							connection.release();
 					}
 					});
@@ -102,6 +98,35 @@ module.exports = function (app,connection, passport) {
 	})
 
 	});
+
+	 function recorrerArrayAgregar(array, index, id,connection, callback) {
+
+    if (array.length > 0) {
+      let sql = "CALL modulos_agregar_insumo(?)";
+     
+      connection.query(sql, [array[index]], function (error, results) {
+
+        if (error) {
+          return connection.rollback(function () {
+            throw error;
+          });
+        }
+
+        if (array.length > index + 1) {
+          recorrerArray(array, index + 1, id, callback)
+        }
+        else {
+          callback();
+        }
+
+      })
+    } else {
+      callback();
+    }
+
+  }
+
+
 
 	app.get('/list-modulos-insumos/:idModulo', checkConnection, function (req, res) {
 		var idModulo = req.params.idModulo;
