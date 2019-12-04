@@ -30,9 +30,12 @@ module.exports = function (app,connection, passport) {
   });
 
 
-  app.post('/delete-modulos', bodyJson,checkConnection, function (req, res) {
+  app.post('/delete-modulo', bodyJson,checkConnection, function (req, res) {
+		let idUser = null;
+		if(req.user)
+			idUser = req.user.id;
     try {
-      connection.query("UPDATE modulos set activo = 0 where id = ?", [req.body.id], function (err, result) {
+      connection.query("CALL modulos_eliminar(?,?,?)", [req.body.id,idUser,req.body.motivo], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
       })
@@ -53,41 +56,39 @@ module.exports = function (app,connection, passport) {
 		connection.getConnection(function(err, connection) {
 			if (err) {
 				connection.release();
-				throw err; }
+				  res.json({ success: 5,error }); }
 
 		connection.beginTransaction(function (err) {
 			if (err) {
 				connection.release();
-				throw err; }
+				  res.json({ success: 5,error }); }
 			var datenow = new Date();
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-			var arrayIns = [req.body.chasis, req.body.descripcion,'Cliente',idUser,1];
-			connection.query("CALL modulos_create (?,?,?,?,?)", arrayIns, function (error, result) {
+			var arrayIns = [req.body.chasis, req.body.descripcion,'Cliente',idUser];
+			connection.query("CALL modulos_crear (?)", [arrayIns], function (error, result) {
 				if (error) {
 					return connection.rollback(function () {
 						connection.release();
-						throw error;
+					  res.json({ success: 5,error });
 					});
 				}
-
-				var insertedId = result[0].id;
-
+			
+				var insertedId = result[0][0].id;
 				var values = [];
 				req.body.detalle.forEach(element => {
-					values.push([element.cantidad,0,insertedId, element.id,1,idUser]);
+					values.push([element.cantidad,insertedId, element.id,idUser]);
 				});
-			recorrerArrayAgregar(values,0,req.body.id,connection,function(){
+			recorrerArrayAgregar(values,0,connection,res,function(){
 
 					connection.commit(function (err) {
 						if (err) {
 							return connection.rollback(function () {
 								connection.release();
-								throw err;
+								  res.json({ success: 5,error });
 							});
 						} else {
-
-						res.json({ success: 1 });
 							connection.release();
+							  res.json({ success: 1,error });
 					}
 					});
 				});
@@ -99,7 +100,7 @@ module.exports = function (app,connection, passport) {
 
 	});
 
-	 function recorrerArrayAgregar(array, index, id,connection, callback) {
+	 function recorrerArrayAgregar(array, index,connection,res, callback) {
 
     if (array.length > 0) {
       let sql = "CALL modulos_agregar_insumo(?)";
@@ -108,12 +109,13 @@ module.exports = function (app,connection, passport) {
 
         if (error) {
           return connection.rollback(function () {
-            throw error;
+						connection.release();
+            res.json({ success: 5,error });
           });
         }
 
         if (array.length > index + 1) {
-          recorrerArray(array, index + 1, id, callback)
+          recorrerArrayAgregar(array, index + 1,connection,res, callback)
         }
         else {
           callback();
@@ -125,6 +127,100 @@ module.exports = function (app,connection, passport) {
     }
 
   }
+
+
+	app.post('/update-modulo', bodyJson, checkConnection, function (req, res) {
+		var idUser=null;
+		if(req.user)
+			idUser = req.user.id;
+
+		connection.getConnection(function(err, connection) {
+			if (err) {
+				connection.release();
+				  res.json({ success: 5,error }); }
+
+		connection.beginTransaction(function (err) {
+			if (err) {
+				connection.release();
+				  res.json({ success: 5,error }); }
+			
+			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+			var arrayMod = [req.body.chasis, req.body.descripcion,'Cliente','Motivo1',req.body.id,idUser];
+			connection.query("CALL modulos_modificar (?)", [arrayMod], function (error, result) {
+				if (error) {
+					return connection.rollback(function () {
+						connection.release();
+					  res.json({ success: 5,error });
+					});
+				}
+			
+			recorrerArrayModificar(req.body.detalle,req.body.id,idUser,0,connection,res,function(){
+
+					connection.commit(function (err) {
+						if (err) {
+							return connection.rollback(function () {
+								connection.release();
+								  res.json({ success: 5,error });
+							});
+						} else {
+							connection.release();
+							  res.json({ success: 1,error });
+					}
+					});
+				});
+			});
+
+		});
+
+	})
+
+	});
+
+
+	 function recorrerArrayModificar(array,id,idUser, index,connection,res, callback) {
+
+    if (array.length > 0) {
+
+      let sql;
+			let objeto = array[index];
+			let arrayMod;
+			if(objeto.insertado){
+				sql = "CALL modulos_agregar_insumo(?)";
+				arrayMod = [objeto.cantidad,id,objeto.id,idUser];
+
+			} else if(objeto.modificado) {
+					sql = "CALL modulos_modificar_cantidad_insumo(?)";
+					arrayMod = [objeto.cantidad,objeto.id_modulos_insumos,idUser];
+
+			} else if(objeto.eliminado) {
+				sql = "CALL modulos_eliminar_insumo(?)";
+					arrayMod = [objeto.id_modulos_insumos,idUser];
+
+			}
+     
+      connection.query(sql, [arrayMod], function (error, results) {
+
+        if (error) {
+          return connection.rollback(function () {
+						connection.release();
+            res.json({ success: 5,error });
+          });
+        }
+
+        if (array.length > index + 1) {
+          recorrerArrayModificar(array,id,idUser, index + 1,connection,res, callback)
+        }
+        else {
+          callback();
+        }
+
+      })
+    } else {
+      callback();
+    }
+
+  }
+
 
 
 
