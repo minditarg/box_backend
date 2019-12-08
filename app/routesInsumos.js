@@ -8,7 +8,7 @@ var bodyUrlencoded = bodyParser.urlencoded({
 var bodyJson = bodyParser.json()
 
 
-module.exports = function (app,connection, passport) {
+module.exports = function (app,connection, passport,io) {
 
   app.get('/list-insumos/:idinsumo', checkConnection,function (req, res) {
     var idInsumo = req.params.idinsumo;
@@ -33,6 +33,7 @@ module.exports = function (app,connection, passport) {
   app.get('/list-insumos',checkConnection, function (req, res) {
       connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.activo=1", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
+				
         res.json({ success: 1, result });
       })
   });
@@ -47,7 +48,7 @@ module.exports = function (app,connection, passport) {
 
   app.get('/select-insumos/:id', checkConnection,function (req, res) {
 
-      connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE id=?", [req.params.id], function (err, result) {
+      connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.id=?", [req.params.id], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
       })
