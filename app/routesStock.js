@@ -16,7 +16,7 @@ module.exports = function (app, connection, passport) {
     if (req.user && req.user.id)
       var userId = req.user.id;
     //console.log("req.body.cantidad ,req.body.id " + req.body.cantidad + " - " + req.body.id);
-    connection.query("INSERT INTO auditoria_stock (id_movimiento, cantidad,id_user, id_insumo,fecha) VALUES (?,?,?,?,?)", [3, req.body.cantidad, userId, req.body.codigo, new Date()], function (err, result) {
+    connection.query("INSERT INTO insumos_movimientos (id_movimiento, cantidad,id_user, id_insumo,fecha) VALUES (?,?,?,?,?)", [3, req.body.cantidad, userId, req.body.codigo, new Date()], function (err, result) {
       if (err) return res.json({ success: 0, error_msj: err });
       res.json({ success: 1, result });
     })
@@ -26,7 +26,7 @@ module.exports = function (app, connection, passport) {
   app.get('/detalle-stock/:idInsumo/:cantidadRegistros', checkConnection, function (req, res) {
     var idInsumo = req.params.idInsumo;
     var cantidadRegistros = parseInt(req.params.cantidadRegistros);
-    connection.query("SELECT m.descripcion,m.descripcion_id, u.username,aus.id_movimiento,aus.fecha, aus.cantidad,aus.id_ingreso,aus.id_entrega,aus.id_devolucion,aus.minimo,aus.parcial,i.referencia FROM auditoria_stock as aus LEFT JOIN ingresos as i ON aus.id_ingreso = i.id LEFT JOIN movimientos as m ON aus.id_movimiento = m.id LEFT JOIN users as u ON u.id = aus.id_user   WHERE aus.id_insumo = ? ORDER BY aus.id DESC LIMIT ?", [idInsumo, cantidadRegistros], function (err, result) {
+    connection.query("SELECT m.descripcion,m.descripcion_id, u.username,aus.id_movimiento,aus.fecha, aus.cantidad,aus.id_ingreso,aus.id_entrega,aus.id_devolucion,aus.minimo,aus.parcial,i.referencia FROM insumos_movimientos as aus LEFT JOIN ingresos as i ON aus.id_ingreso = i.id LEFT JOIN movimientos as m ON aus.id_movimiento = m.id LEFT JOIN users as u ON u.id = aus.id_user   WHERE aus.id_insumo = ? ORDER BY aus.id DESC LIMIT ?", [idInsumo, cantidadRegistros], function (err, result) {
       if (err) return res.json({ success: 0, error_msj: err });
       res.json({ success: 1, result });
     })

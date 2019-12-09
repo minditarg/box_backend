@@ -78,7 +78,7 @@ module.exports = function (app,connection, passport) {
                 throw error;
               });
             }
-            var sql = "INSERT INTO auditoria_stock (id_movimiento,cantidad,id_user,fecha,id_entrega,id_insumo) VALUES ?";
+            var sql = "INSERT INTO insumos_movimientos (id_movimiento,cantidad,id_user,fecha,id_entrega,id_insumo) VALUES ?";
             var values = [];
             req.body.detalle.forEach(element => {
               values.push([2, element.cantidad, userId, new Date(), insertedEntrega, element.id]);

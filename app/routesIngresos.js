@@ -78,7 +78,7 @@ module.exports = function (app,connection, passport) {
                 throw error;
               });
             }
-            var sql = "INSERT INTO auditoria_stock (id_movimiento,cantidad,id_user,fecha,id_ingreso,id_insumo) VALUES ?";
+            var sql = "INSERT INTO insumos_movimientos (id_movimiento,cantidad,id_user,fecha,id_ingreso,id_insumo) VALUES ?";
             var values = [];
             req.body.detalle.forEach(element => {
               values.push([1, element.cantidad, null, new Date(), insertedIngreso, element.id]);
@@ -113,11 +113,11 @@ module.exports = function (app,connection, passport) {
 
 
   function checkConnection(req,res,next) {
-    
+
     console.log(connection.state);
     //if(connection.state === 'disconnected'){
     // connection = mysql.createConnection(dbconfig.connection);
-   
+
   //  }
 
     next();

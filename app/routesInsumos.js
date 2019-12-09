@@ -33,7 +33,7 @@ module.exports = function (app,connection, passport,io) {
   app.get('/list-insumos',checkConnection, function (req, res) {
       connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.activo=1", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
-				
+
         res.json({ success: 1, result });
       })
   });
@@ -108,8 +108,8 @@ module.exports = function (app,connection, passport,io) {
           if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
 					if(req.body.minimo){
 						var arrayUpdate =[5,userId, new Date(),id_insumo,req.body.minimo];
-					connection.query("INSERT INTO auditoria_stock (id_movimiento,id_user,fecha,id_insumo,minimo) VALUES (?)", [arrayUpdate], function (err, result) {
-						if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar auditoria stock", err });
+					connection.query("INSERT INTO insumos_movimientos (id_movimiento,id_user,fecha,id_insumo,minimo) VALUES (?)", [arrayUpdate], function (err, result) {
+						if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumos movimientos", err });
 						res.json({ success: 1, result });
 					})
 				}else{
