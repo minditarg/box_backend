@@ -38,6 +38,14 @@ module.exports = function (app,connection, passport,io) {
       })
   });
 
+  app.get('/list-insumos-alertados',checkConnection, function (req, res) {
+    connection.query("SELECT i.id_insumos_categorias, i.numero, i.descripcion, i.activo, i.unidad, i.minimo, i.cantidad, i.costo, i.fecha_actualizacion_costo, i.alertar, i.autorizar, ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.activo=1 and i.alertar = 1 and i.fecha_actualizacion_costo <= DATE_SUB(NOW(), INTERVAL 30 DAY)", function (err, result) {
+      if (err) return res.json({ success: 0, error_msj: err });
+      res.json({ success: 1, result });
+    })
+});
+  
+
   app.get('/select-insumos/:id', checkConnection,function (req, res) {
 
       connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.id=?", [req.params.id], function (err, result) {
@@ -72,7 +80,16 @@ module.exports = function (app,connection, passport,io) {
 
   app.post('/insert-insumos', bodyJson,checkConnection, function (req, res) {
 
-      var arrayIns = [ req.body.descripcion, req.body.unidad, req.body.minimo, 1, req.body.categoria, req.body.numero];
+    var alerta = 0;
+    var autorizar = 0;
+
+    if(req.body.alertar)
+      alerta = 1;
+
+    if(req.body.autorizar)
+      autorizar = 1;
+
+      var arrayIns = [ req.body.descripcion, req.body.unidad, req.body.minimo, 1, req.body.categoria, req.body.numero, alerta, autorizar];
 
       connection.query("SELECT * FROM insumos WHERE id_insumos_categorias = ? AND numero = ?", [req.body.categoria, req.body.numero], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al chequear duplicidad de insumos", err });
@@ -81,7 +98,7 @@ module.exports = function (app,connection, passport,io) {
             return res.json({ success: 0, error_msj: "No se puede guardar, código ya utilizado. Ingrese otro.", err });
           }
           else {
-            connection.query("INSERT INTO insumos (descripcion, unidad, minimo, activo, id_insumos_categorias, numero) VALUES (?)", [arrayIns], function (err, result) {
+            connection.query("INSERT INTO insumos (descripcion, unidad, minimo, activo, id_insumos_categorias, numero, alertar, autorizar) VALUES (?)", [arrayIns], function (err, result) {
               if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un insumo", err });
               res.json({ success: 1, result });
             })
@@ -96,6 +113,27 @@ module.exports = function (app,connection, passport,io) {
   });
 
 
+  app.post('/update-insumos-costos', bodyJson,checkConnection, function (req, res) {
+    var userId = null;
+    if(req.user)
+    userId = req.user.id;
+
+    if (req.body.id) {
+      var id_insumo = parseInt(req.body.id);
+     // var objectoUpdate = {costo: req.body.costo, fecha_actualizacion_costo: new Date()};
+     // connection.query("UPDATE insumos SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
+      connection.query("call update_insumos_costo(?)", [[req.body.costo, new Date(), id_insumo, userId]], function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar el costo del insumo", err });
+        else{
+        res.json({ success: 1, result });
+      }
+      });
+    } else {
+      res.json({ success: 0, error_msj: "el id de la tabla insumo no esta ingresado" })
+    }
+});
+
+
   app.post('/update-insumos', bodyJson,checkConnection, function (req, res) {
 			var userId = null;
 			if(req.user)
@@ -103,7 +141,7 @@ module.exports = function (app,connection, passport,io) {
 
       if (req.body.id) {
         var id_insumo = parseInt(req.body.id);
-        var objectoUpdate = { descripcion: req.body.descripcion, unidad: req.body.unidad, id_insumos_categorias: req.body.categoria, numero: req.body.numero };
+        var objectoUpdate = { descripcion: req.body.descripcion, unidad: req.body.unidad, id_insumos_categorias: req.body.categoria, numero: req.body.numero, alertar: req.body.alertar, autorizar: req.body.autorizar };
         connection.query("UPDATE insumos SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
           if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
 					if(req.body.minimo){
