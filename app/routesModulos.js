@@ -56,20 +56,20 @@ module.exports = function (app,connection, passport) {
 		connection.getConnection(function(err, connection) {
 			if (err) {
 				connection.release();
-				  res.json({ success: 5,error }); }
+				  res.json({ success: 5,err }); }
 
 		connection.beginTransaction(function (err) {
 			if (err) {
 				connection.release();
-				  res.json({ success: 5,error }); }
+				  res.json({ success: 5,err }); }
 			var datenow = new Date();
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
 			var arrayIns = [req.body.chasis, req.body.descripcion,'Cliente',idUser];
-			connection.query("CALL modulos_crear (?)", [arrayIns], function (error, result) {
-				if (error) {
+			connection.query("CALL modulos_crear (?)", [arrayIns], function (err, result) {
+				if (err) {
 					return connection.rollback(function () {
 						connection.release();
-					  res.json({ success: 5,error });
+					  res.json({ success: 5,err });
 					});
 				}
 			
@@ -84,11 +84,11 @@ module.exports = function (app,connection, passport) {
 						if (err) {
 							return connection.rollback(function () {
 								connection.release();
-								  res.json({ success: 5,error });
+								  res.json({ success: 5,err });
 							});
 						} else {
 							connection.release();
-							  res.json({ success: 1,error });
+							  res.json({ success: 1 });
 					}
 					});
 				});
@@ -105,12 +105,12 @@ module.exports = function (app,connection, passport) {
     if (array.length > 0) {
       let sql = "CALL modulos_agregar_insumo(?)";
      
-      connection.query(sql, [array[index]], function (error, results) {
+      connection.query(sql, [array[index]], function (err, results) {
 
         if (error) {
           return connection.rollback(function () {
 						connection.release();
-            res.json({ success: 5,error });
+            res.json({ success: 5,err });
           });
         }
 
@@ -137,20 +137,20 @@ module.exports = function (app,connection, passport) {
 		connection.getConnection(function(err, connection) {
 			if (err) {
 				connection.release();
-				  res.json({ success: 5,error }); }
+				  res.json({ success: 5,err }); }
 
 		connection.beginTransaction(function (err) {
 			if (err) {
 				connection.release();
-				  res.json({ success: 5,error }); }
+				  res.json({ success: 5,err }); }
 			
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
 			var arrayMod = [req.body.chasis, req.body.descripcion,'Cliente','Motivo1',req.body.id,idUser];
-			connection.query("CALL modulos_modificar (?)", [arrayMod], function (error, result) {
-				if (error) {
+			connection.query("CALL modulos_modificar (?)", [arrayMod], function (err, result) {
+				if (err) {
 					return connection.rollback(function () {
 						connection.release();
-					  res.json({ success: 5,error });
+					  res.json({ success: 5,err });
 					});
 				}
 			
@@ -160,11 +160,11 @@ module.exports = function (app,connection, passport) {
 						if (err) {
 							return connection.rollback(function () {
 								connection.release();
-								  res.json({ success: 5,error });
+								  res.json({ success: 5,err });
 							});
 						} else {
 							connection.release();
-							  res.json({ success: 1,error });
+							  res.json({ success: 1 });
 					}
 					});
 				});
@@ -198,12 +198,12 @@ module.exports = function (app,connection, passport) {
 
 			}
      
-      connection.query(sql, [arrayMod], function (error, results) {
+      connection.query(sql, [arrayMod], function (err, results) {
 
-        if (error) {
+        if (err) {
           return connection.rollback(function () {
 						connection.release();
-            res.json({ success: 5,error });
+            res.json({ success: 5,err });
           });
         }
 
