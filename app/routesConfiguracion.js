@@ -39,19 +39,28 @@ module.exports = function (app, connection, passport) {
 
 		if (req.body.id) {
 			var id_insumo = parseInt(req.body.id);
-			var objectoUpdate = { alertaCosto: req.body.alertaCosto };
+			var objectoUpdate = { valor: req.body.alertaCosto };
 			connection.query("UPDATE configuraciones SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
-				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar la configuracion", err });
 				else {
 					res.json({ success: 1, result });
 				}
 
 			});
 		} else {
-			res.json({ success: 0, error_msj: "el id de la tabla insumo no esta ingresado" })
+			res.json({ success: 0, error_msj: "el id de la tabla configuracion no esta ingresado" })
 
 		}
 	});
+
+
+	
+	app.get('/list-configuraciones',checkConnection, function (req, res) {
+		connection.query("SELECT id, nombre, valor FROM configuraciones", function (err, result) {
+		  if (err) return res.json({ success: 0, error_msj: err });
+		  res.json({ success: 1, result });
+		})
+	  });
 
 
 	app.get('/logout', function (req, res) {

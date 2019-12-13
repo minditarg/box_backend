@@ -39,7 +39,12 @@ module.exports = function (app,connection, passport,io) {
   });
 
   app.get('/list-insumos-alertados',checkConnection, function (req, res) {
-    connection.query("SELECT i.id_insumos_categorias, i.numero, i.descripcion, i.activo, i.unidad, i.minimo, i.cantidad, i.costo, i.fecha_actualizacion_costo, i.alertar, i.autorizar, ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.activo=1 and i.alertar = 1 and i.fecha_actualizacion_costo <= DATE_SUB(NOW(), INTERVAL 30 DAY)", function (err, result) {
+    connection.query("call insumos_listar_alertados()", function (err, result) {
+
+
+      //connection.query("call update_insumos_costo(?)", [[req.body.costo, new Date(), id_insumo, userId]], function (err, result) {
+
+    // connection.query("SELECT i.id_insumos_categorias, i.numero, i.descripcion, i.activo, i.unidad, i.minimo, i.cantidad, i.costo, i.fecha_actualizacion_costo, i.alertar, i.autorizar, ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.activo=1 and i.alertar = 1 and i.fecha_actualizacion_costo <= DATE_SUB(NOW(), INTERVAL 30 DAY)", function (err, result) {
       if (err) return res.json({ success: 0, error_msj: err });
       res.json({ success: 1, result });
     })
