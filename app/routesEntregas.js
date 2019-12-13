@@ -49,36 +49,36 @@ module.exports = function (app, connection, passport) {
     connection.getConnection(function (err, connection) {
       if (err) {
         connection.release();
-        res.json({ success: 5, err });
+        res.json({ success: 0, err });
       }
 
 
       connection.beginTransaction(function (err) {
         if (err) {
           connection.release();
-          res.json({ success: 5, err });
+          res.json({ success: 0, err });
         }
         var datenow = new Date();
         var userId = null;
         if (req.user)
           userId = req.user.id;
         //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-        var arrayIns = [req.body.referencia, req.body.comentario, req.body.id_modulo, userId, datenow];
-        var arrayAtrib = ["referencia", "comentario", "id_modulo", "id_user", "fecha"];
-        connection.query("INSERT INTO entregas (referencia,comentario,id_modulo,id_user,fecha) VALUES (?)", [arrayIns], function (err, result) {
+        var arrayIns = [req.body.id_modulo,req.body.referencia, req.body.comentario,userId];
+        connection.query("CALL entregas_crear(?)", [arrayIns], function (err, result) {
           if (err) {
             return connection.rollback(function () {
               connection.release();
-              res.json({ success: 5, err });
+              res.json({ success: 0, err });
             });
           }
 
-          var insertedEntrega = result.insertId;
+          var insertedEntrega = result[0][0].id_entrega;
+          var insertedModuloMovimiento = result[0][0].id_modulo_movimiento;
 
 
           var values = [];
           req.body.detalle.forEach(element => {
-            values.push([insertedEntrega,element.id, element.cantidad, userId ]);
+            values.push([insertedEntrega,element.id,element.id_modulo_insumo,insertedModuloMovimiento, element.cantidad, userId ]);
           });
 
           recorrerArrayAgregar(values,0,connection, res,function(){
@@ -90,7 +90,7 @@ module.exports = function (app, connection, passport) {
               if (err) {
                 return connection.rollback(function () {
                   connection.release();
-                  res.json({ success: 5, err });
+                  res.json({ success: 0, err });
                 });
               }
 
@@ -108,14 +108,14 @@ module.exports = function (app, connection, passport) {
   function recorrerArrayAgregar(array, index, connection, res, callback) {
 
     if (array.length > 0) {
-      let sql = "CALL insumos_entregar(?)";
+      let sql = "CALL entregas_agregar_insumo(?)";
 
       connection.query(sql, [array[index]], function (err, results) {
 
         if (err) {
           return connection.rollback(function () {
             connection.release();
-            res.json({ success: 5, err });
+            res.json({ success: 0, err });
           });
         }
 
