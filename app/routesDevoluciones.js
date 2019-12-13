@@ -47,6 +47,12 @@ module.exports = function (app,connection, passport) {
   app.post('/insert-devoluciones', bodyJson,checkConnection, function (req, res) {
 
 
+		connection.getConnection(function (err, connection) {
+			if (err) {
+				connection.release();
+				res.json({ success: 0, err });
+			}
+
       connection.beginTransaction(function (err) {
         if (err) { throw err; }
         var datenow = new Date();
@@ -65,32 +71,14 @@ module.exports = function (app,connection, passport) {
 
           var insertedDevolucion = result.insertId;
 
-          var sql = "INSERT INTO devoluciones_detalles (id_devolucion, id_insumo, cantidad, activo) VALUES ?";
-          var values = [];
-          req.body.detalle.forEach(element => {
-            values.push([insertedDevolucion, element.id, element.cantidad, 1]);
-          });
 
-          connection.query(sql, [values], function (error, results) {
-
-            if (error) {
-              return connection.rollback(function () {
-                throw error;
-              });
-            }
-            var sql = "INSERT INTO insumos_movimientos (id_movimiento,cantidad,id_user,fecha,id_devolucion,id_insumo) VALUES ?";
+            var sql = "CALL insumos_devolver(?)";
             var values = [];
             req.body.detalle.forEach(element => {
-              values.push([4, element.cantidad, userId, new Date(), insertedDevolucion, element.id]);
+              values.push([insertedDevolucion,element.id, element.cantidad, userId]);
             });
 
-            connection.query(sql, [values], function (error, results) {
-
-              if (error) {
-                return connection.rollback(function () {
-                  throw error;
-                });
-              }
+            recorrerArrayAgregar(values,0, connection, res, function(){
 
 
 
@@ -102,14 +90,44 @@ module.exports = function (app,connection, passport) {
                   });
                 }
 
-                res.json({ success: 1, results });
+                res.json({ success: 1 });
               });
             });
           });
-        });
-      });
 
+      });
+		})
   });
+
+
+	function recorrerArrayAgregar(array, index, connection, res, callback) {
+
+    if (array.length > 0) {
+      let sql = "CALL insumos_devolver(?)";
+
+      connection.query(sql, [array[index]], function (err, results) {
+
+        if (err) {
+          return connection.rollback(function () {
+            connection.release();
+            res.json({ success: 0, err });
+          });
+        }
+
+        if (array.length > index + 1) {
+          recorrerArrayAgregar(array, index + 1, connection, res, callback)
+        }
+        else {
+          callback();
+        }
+
+      })
+    } else {
+      callback();
+    }
+
+  }
+
 
 
   function checkConnection(req,res,next) {
