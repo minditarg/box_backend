@@ -22,6 +22,18 @@ module.exports = function (app, connection, passport) {
 
   });
 
+
+
+  app.get('/list-entregas-insumos-modulo/:idModulo', checkConnection, function (req, res) {
+    let idModulo = req.params.idModulo;
+    connection.query("CALL entregas_listar_insumos_modulo(?) ",[idModulo], function (err, result) {
+      if (err) return res.json({ success: 0, error_msj: err });
+      res.json({ success: 1, result:result[0] });
+
+    })
+
+  });
+
   app.get('/list-entregas-detalles/:idEntrega/:cantidad', checkConnection, function (req, res) {
     var idEntrega = parseInt(req.params.idEntrega);
     var cantidad = parseInt(req.params.cantidad);
@@ -83,7 +95,7 @@ module.exports = function (app, connection, passport) {
 
           recorrerArrayAgregar(values,0,connection, res,function(){
 
-          
+
 
 
             connection.commit(function (err) {

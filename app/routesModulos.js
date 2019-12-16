@@ -72,7 +72,7 @@ module.exports = function (app,connection, passport) {
 					  res.json({ success: 5,err });
 					});
 				}
-			
+
 				var insertedId = result[0][0].id;
 				var values = [];
 				req.body.detalle.forEach(element => {
@@ -104,10 +104,10 @@ module.exports = function (app,connection, passport) {
 
     if (array.length > 0) {
       let sql = "CALL modulos_agregar_insumo(?)";
-     
+
       connection.query(sql, [array[index]], function (err, results) {
 
-        if (error) {
+        if (err) {
           return connection.rollback(function () {
 						connection.release();
             res.json({ success: 5,err });
@@ -143,7 +143,7 @@ module.exports = function (app,connection, passport) {
 			if (err) {
 				connection.release();
 				  res.json({ success: 5,err }); }
-			
+
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
 			var arrayMod = [req.body.chasis, req.body.descripcion,'Cliente','Motivo1',req.body.id,idUser];
 			connection.query("CALL modulos_modificar (?)", [arrayMod], function (err, result) {
@@ -153,7 +153,7 @@ module.exports = function (app,connection, passport) {
 					  res.json({ success: 5,err });
 					});
 				}
-			
+
 			recorrerArrayModificar(req.body.detalle,req.body.id,idUser,0,connection,res,function(){
 
 					connection.commit(function (err) {
@@ -197,7 +197,7 @@ module.exports = function (app,connection, passport) {
 					arrayMod = [objeto.id_modulos_insumos,idUser];
 
 			}
-     
+
       connection.query(sql, [arrayMod], function (err, results) {
 
         if (err) {
@@ -227,15 +227,10 @@ module.exports = function (app,connection, passport) {
 	app.get('/list-modulos-insumos/:idModulo', checkConnection, function (req, res) {
 		var idModulo = req.params.idModulo;
 
-		connection.query("SELECT * FROM modulos m  WHERE m.activo = 1 AND m.id = ? ", [idModulo], function (err, resultModulo) {
+		connection.query("CALL modulos_listar_insumos(?)", [idModulo], function (err, result) {
 			if (err) return res.json({ success: 0, error_msj: err });
 
-			connection.query("SELECT i.*,mi.cantidad,mi.id as id_modulos_insumos,ic.codigo FROM modulos_insumos mi LEFT JOIN insumos i ON i.id = mi.id_insumo LEFT JOIN insumos_categorias ic ON i.id_insumos_categorias = ic.id  WHERE mi.activo = 1 AND mi.id_modulo = ? ", [idModulo], function (err, resultInsumos) {
-				if (err) return res.json({ success: 0, error_msj: err });
-				res.json({ success: 1, modulo: resultModulo, insumos: resultInsumos });
-
-			})
-
+				res.json({ success: 1, modulo: result[0], insumos: result[1] });
 
 		})
 

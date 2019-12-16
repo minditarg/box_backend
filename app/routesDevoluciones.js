@@ -22,6 +22,17 @@ module.exports = function (app, connection, passport) {
 
   });
 
+
+  app.get('/list-devoluciones-insumos-modulo/:idModulo', checkConnection, function (req, res) {
+    let idModulo = req.params.idModulo;
+    connection.query("CALL devoluciones_listar_insumos_modulo(?) ",[idModulo], function (err, result) {
+      if (err) return res.json({ success: 0, error_msj: err });
+      res.json({ success: 1, result:result[0] });
+
+    })
+
+  });
+
   app.get('/list-devoluciones-detalles/:idDevolucion/:cantidad', checkConnection, function (req, res) {
     var idDevolucion = parseInt(req.params.idDevolucion);
     var cantidad = parseInt(req.params.cantidad);
@@ -77,10 +88,10 @@ module.exports = function (app, connection, passport) {
           var insertedModuloMovimiento = result[0][0].id_modulo_movimiento;
 
 
-         
+
           var values = [];
           req.body.detalle.forEach(element => {
-            values.push([insertedDevolucion, element.id,element.id_modulo_insumo,insertedModuloMovimiento, element.cantidad, userId]);
+            values.push([insertedDevolucion,req.body.id_modulo,element.id_modulo_insumo,insertedModuloMovimiento, element.cantidad, userId]);
           });
 
           recorrerArrayAgregar(values, 0, connection, res, function () {
