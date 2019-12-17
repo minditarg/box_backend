@@ -47,6 +47,51 @@ module.exports = function (app,connection, passport) {
     }
   });
 
+	app.post('/ordenar-modulos',bodyJson,checkConnection, function (req, res) {
+		let values = [];
+		req.body.detalle.forEach((element,index) => {
+			if(element.id_modulos_insumos)
+			values.push([element.id_modulos_insumos,index]);
+		});
+		recorrerArrayOrdenar(values,0,connection,res,function(){
+
+				res.json({ success: 1});
+
+		})
+
+
+
+
+	});
+
+	function recorrerArrayOrdenar(array, index,connection,res, callback) {
+
+	 if (array.length > 0) {
+		 let sql = "CALL modulos_ordenar_insumo(?)";
+
+		 connection.query(sql, [array[index]], function (err, results) {
+
+			 if (err) {
+				 return	res.json({ success: 0,err });
+
+			 }
+
+			 if (array.length > index + 1) {
+				 recorrerArrayOrdenar(array, index + 1,connection,res, callback)
+			 }
+			 else {
+				 callback();
+			 }
+
+		 })
+	 } else {
+		 callback();
+	 }
+
+	}
+
+
+
 
 	app.post('/insert-modulo', bodyJson, checkConnection, function (req, res) {
 		var idUser=null;
@@ -56,12 +101,12 @@ module.exports = function (app,connection, passport) {
 		connection.getConnection(function(err, connection) {
 			if (err) {
 				connection.release();
-				  res.json({ success: 5,err }); }
+				  res.json({ success: 0,err }); }
 
 		connection.beginTransaction(function (err) {
 			if (err) {
 				connection.release();
-				  res.json({ success: 5,err }); }
+				  res.json({ success: 0,err }); }
 			var datenow = new Date();
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
 			var arrayIns = [req.body.chasis, req.body.descripcion,'Cliente',idUser];
@@ -69,7 +114,7 @@ module.exports = function (app,connection, passport) {
 				if (err) {
 					return connection.rollback(function () {
 						connection.release();
-					  res.json({ success: 5,err });
+					  res.json({ success: 0,err });
 					});
 				}
 
@@ -84,7 +129,7 @@ module.exports = function (app,connection, passport) {
 						if (err) {
 							return connection.rollback(function () {
 								connection.release();
-								  res.json({ success: 5,err });
+								  res.json({ success: 0,err });
 							});
 						} else {
 							connection.release();
@@ -110,7 +155,7 @@ module.exports = function (app,connection, passport) {
         if (err) {
           return connection.rollback(function () {
 						connection.release();
-            res.json({ success: 5,err });
+            res.json({ success: 0,err });
           });
         }
 
