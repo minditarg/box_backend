@@ -120,8 +120,8 @@ module.exports = function (app,connection, passport) {
 
 				var insertedId = result[0][0].id;
 				var values = [];
-				req.body.detalle.forEach(element => {
-					values.push([element.cantidad,insertedId, element.id,idUser]);
+				req.body.detalle.forEach((element,index) => {
+					values.push([element.cantidad,insertedId, element.id,index,idUser]);
 				});
 			recorrerArrayAgregar(values,0,connection,res,function(){
 
@@ -231,16 +231,19 @@ module.exports = function (app,connection, passport) {
 			let arrayMod;
 			if(objeto.insertado){
 				sql = "CALL modulos_agregar_insumo(?)";
-				arrayMod = [objeto.cantidad,id,objeto.id,idUser];
+				arrayMod = [objeto.cantidad,id,objeto.id,index,idUser];
 
 			} else if(objeto.modificado) {
 					sql = "CALL modulos_modificar_cantidad_insumo(?)";
-					arrayMod = [objeto.cantidad,objeto.id_modulos_insumos,idUser];
+					arrayMod = [objeto.cantidad,objeto.id_modulos_insumos,index,idUser];
 
 			} else if(objeto.eliminado) {
 				sql = "CALL modulos_eliminar_insumo(?)";
 					arrayMod = [objeto.id_modulos_insumos,idUser];
 
+			} else if(objeto.id_modulos_insumos) {
+				sql = "CALL modulos_ordenar_insumo(?)";
+					arrayMod = [objeto.id_modulos_insumos,index];
 			}
 
       connection.query(sql, [arrayMod], function (err, results) {
