@@ -90,7 +90,7 @@ module.exports = function (app, connection, passport) {
 
           var values = [];
           req.body.detalle.forEach(element => {
-            values.push([insertedEntrega,element.id,element.id_modulo_insumo,insertedModuloMovimiento, element.cantidad, userId ]);
+            values.push([insertedEntrega,req.body.id_modulo,element.id_modulo_insumo,insertedModuloMovimiento, element.cantidad, userId ]);
           });
 
           recorrerArrayAgregar(values,0,connection, res,function(){
