@@ -50,8 +50,8 @@ module.exports = function (app,connection, passport) {
 	app.post('/ordenar-modulos',bodyJson,checkConnection, function (req, res) {
 		let values = [];
 		req.body.detalle.forEach((element,index) => {
-			if(element.id_modulos_insumos)
-			values.push([element.id_modulos_insumos,index]);
+			if(element.id_modulo_insumo)
+			values.push([element.id_modulo_insumo,index]);
 		});
 		recorrerArrayOrdenar(values,0,connection,res,function(){
 
@@ -121,7 +121,7 @@ module.exports = function (app,connection, passport) {
 				var insertedId = result[0][0].id;
 				var values = [];
 				req.body.detalle.forEach((element,index) => {
-					values.push([element.cantidad,insertedId, element.id,index,idUser]);
+					values.push([element.cantidad_requerida,insertedId, element.id,index,idUser]);
 				});
 			recorrerArrayAgregar(values,0,connection,res,function(){
 
@@ -182,12 +182,12 @@ module.exports = function (app,connection, passport) {
 		connection.getConnection(function(err, connection) {
 			if (err) {
 				connection.release();
-				  res.json({ success: 5,err }); }
+				  res.json({ success: 0,err }); }
 
 		connection.beginTransaction(function (err) {
 			if (err) {
 				connection.release();
-				  res.json({ success: 5,err }); }
+				  res.json({ success: 0,err }); }
 
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
 			var arrayMod = [req.body.chasis, req.body.descripcion,'Cliente','Motivo1',req.body.id,idUser];
@@ -205,7 +205,7 @@ module.exports = function (app,connection, passport) {
 						if (err) {
 							return connection.rollback(function () {
 								connection.release();
-								  res.json({ success: 5,err });
+								  res.json({ success: 0,err });
 							});
 						} else {
 							connection.release();
@@ -231,19 +231,19 @@ module.exports = function (app,connection, passport) {
 			let arrayMod;
 			if(objeto.insertado){
 				sql = "CALL modulos_agregar_insumo(?)";
-				arrayMod = [objeto.cantidad,id,objeto.id,index,idUser];
+				arrayMod = [objeto.cantidad_requerida,id,objeto.id,index,idUser];
 
 			} else if(objeto.modificado) {
 					sql = "CALL modulos_modificar_cantidad_insumo(?)";
-					arrayMod = [objeto.cantidad,objeto.id_modulos_insumos,index,idUser];
+					arrayMod = [objeto.cantidad_requerida,objeto.id_modulo_insumo,index,idUser];
 
 			} else if(objeto.eliminado) {
 				sql = "CALL modulos_eliminar_insumo(?)";
-					arrayMod = [objeto.id_modulos_insumos,idUser];
+					arrayMod = [objeto.id_modulo_insumo,idUser];
 
-			} else if(objeto.id_modulos_insumos) {
+			} else if(objeto.id_modulo_insumo) {
 				sql = "CALL modulos_ordenar_insumo(?)";
-					arrayMod = [objeto.id_modulos_insumos,index];
+					arrayMod = [objeto.id_modulo_insumo,index];
 			}
 
       connection.query(sql, [arrayMod], function (err, results) {
