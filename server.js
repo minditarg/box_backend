@@ -80,6 +80,7 @@ require('./app/routesEntregas.js')(app,connection, passport);
 require('./app/routesDevoluciones.js')(app,connection, passport);
 require('./app/routesPlantillas.js')(app,connection, passport);
 require('./app/routesConfiguracion.js')(app,connection, passport);
+require('./app/routesPedidos.js')(app,connection, passport);
 
 /////////////////////
 //para development
