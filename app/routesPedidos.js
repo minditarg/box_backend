@@ -12,7 +12,7 @@ module.exports = function (app,connection, passport,io) {
 
   app.get('/detalle-pedido/:idpedido', checkConnection,function (req, res) {
     var idPedido = req.params.idpedido;
-      connection.query("SELECT p.*,i.descripcion, i.unidad, CONCAT(ic.codigo, i.numero) as identificador FROM pedidos p INNER JOIN insumos i ON p.id_insumo = i.id inner join insumos_categorias ic on ic.id = i.id_insumos_categorias WHERE p.id= ?", [idPedido], function (err, result) {
+      connection.query("SELECT p.*, i.id, i.descripcion, i.unidad, CONCAT(ic.codigo, i.numero) as identificador FROM pedidos p INNER JOIN insumos i ON p.id_insumo = i.id inner join insumos_categorias ic on ic.id = i.id_insumos_categorias WHERE p.id= ?", [idPedido], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
       })

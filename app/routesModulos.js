@@ -29,6 +29,58 @@ module.exports = function (app,connection, passport) {
 
   });
 
+  app.get('/list-modulos-diseno',checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT m.*, e.descripcion as descripcion_estado FROM modulos m inner join modulos_estados e on m.id_modulo_estado = e.id WHERE m.activo = 1 AND m.id_modulo_estado = 1 ORDER BY m.id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
+  app.get('/list-modulos-produccion',checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT m.*, e.descripcion as descripcion_estado FROM modulos m inner join modulos_estados e on m.id_modulo_estado = e.id WHERE m.activo = 1 AND m.id_modulo_estado = 2 ORDER BY m.id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
+
+  app.post('/producir-modulo', bodyJson,checkConnection, function (req, res) {
+	let idUser = null;
+	if(req.user)
+		idUser = req.user.id;
+try {
+  connection.query("UPDATE modulos SET id_modulo_estado = 2 WHERE id = ?", [req.body.id], function (err, result) {
+	if (err) return res.json({ success: 0, error_msj: err });
+	res.json({ success: 1, result });
+  })
+} catch (e) {
+  return res.status(500).send({
+	error: true,
+	message: e.message
+  })
+}
+});
+
 
   app.post('/delete-modulo', bodyJson,checkConnection, function (req, res) {
 		let idUser = null;
