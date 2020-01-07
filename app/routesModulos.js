@@ -82,6 +82,19 @@ try {
 });
 
 
+	app.get('/list-modulos-paniol', checkConnection, function (req, res) {
+let cantidad = req.params.cantidad;
+		connection.query("CALL modulos_listar_paniol()", function (err, result) {
+			if (err) return res.json({ success: 0, error_msj: err });
+
+				res.json({ success: 1, modulos: result[0], insumosDisponibles:result[1] });
+
+		})
+
+
+	});
+
+
   app.post('/delete-modulo', bodyJson,checkConnection, function (req, res) {
 		let idUser = null;
 		if(req.user)

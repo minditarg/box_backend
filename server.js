@@ -24,6 +24,7 @@ var mysql = require('mysql');
 var dbconfig = require('./config/database');
 //var connection = mysql.createConnection(dbconfig.connection);
 var connection = mysql.createPool({
+  acquireTimeout:1000,
   connectionLimit: 10,
   host: '50.63.166.215',
   user: 'matias',
