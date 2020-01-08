@@ -46,10 +46,64 @@ module.exports = function (app,connection, passport) {
 
   });
 
+  
+  app.get('/list-modulos-finalizados',checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT m.*, e.descripcion as descripcion_estado FROM modulos m inner join modulos_estados e on m.id_modulo_estado = e.id WHERE m.activo = 1 AND m.id_modulo_estado = 5 ORDER BY m.id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
+
+  
+  app.get('/list-modulos-cancelados',checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT m.*, e.descripcion as descripcion_estado FROM modulos m inner join modulos_estados e on m.id_modulo_estado = e.id WHERE m.activo = 1 AND m.id_modulo_estado = 4 ORDER BY m.id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
   app.get('/list-modulos-produccion',checkConnection, function (req, res) {
 
     try {
       connection.query("SELECT m.*, e.descripcion as descripcion_estado FROM modulos m inner join modulos_estados e on m.id_modulo_estado = e.id WHERE m.activo = 1 AND m.id_modulo_estado = 2 ORDER BY m.id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
+  app.get('/list-modulos-pausados',checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT m.*, e.descripcion as descripcion_estado FROM modulos m inner join modulos_estados e on m.id_modulo_estado = e.id WHERE m.activo = 1 AND m.id_modulo_estado = 3 ORDER BY m.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
@@ -81,6 +135,59 @@ try {
 }
 });
 
+
+
+app.post('/cancelar-modulo', bodyJson,checkConnection, function (req, res) {
+	let idUser = null;
+	if(req.user)
+		idUser = req.user.id;
+try {
+  connection.query("UPDATE modulos SET id_modulo_estado = 4 WHERE id = ?", [req.body.id], function (err, result) {
+	if (err) return res.json({ success: 0, error_msj: err });
+	res.json({ success: 1, result });
+  })
+} catch (e) {
+  return res.status(500).send({
+	error: true,
+	message: e.message
+  })
+}
+});
+
+
+app.post('/pausar-modulo', bodyJson,checkConnection, function (req, res) {
+	let idUser = null;
+	if(req.user)
+		idUser = req.user.id;
+try {
+  connection.query("UPDATE modulos SET id_modulo_estado = 3 WHERE id = ?", [req.body.id], function (err, result) {
+	if (err) return res.json({ success: 0, error_msj: err });
+	res.json({ success: 1, result });
+  })
+} catch (e) {
+  return res.status(500).send({
+	error: true,
+	message: e.message
+  })
+}
+});
+
+app.post('/finalizar-modulo', bodyJson,checkConnection, function (req, res) {
+	let idUser = null;
+	if(req.user)
+		idUser = req.user.id;
+try {
+  connection.query("UPDATE modulos SET id_modulo_estado = 5 WHERE id = ?", [req.body.id], function (err, result) {
+	if (err) return res.json({ success: 0, error_msj: err });
+	res.json({ success: 1, result });
+  })
+} catch (e) {
+  return res.status(500).send({
+	error: true,
+	message: e.message
+  })
+}
+});
 
 	app.get('/list-modulos-paniol', checkConnection, function (req, res) {
 let cantidad = req.params.cantidad;
