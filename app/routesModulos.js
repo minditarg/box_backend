@@ -83,8 +83,9 @@ let cantidad = req.params.cantidad;
 		 let sql = "CALL modulos_ordenar_insumo(?)";
 
 		 connection.query(sql, [array[index]], function (err, results) {
-
+			 console.log("hola matias");
 			 if (err) {
+				 console.log(err);
 				 return	res.json({ success: 0,err });
 
 			 }
@@ -262,6 +263,7 @@ let cantidad = req.params.cantidad;
       connection.query(sql, [arrayMod], function (err, results) {
 
         if (err) {
+					//console.log(err.sqlMessage);
           return connection.rollback(function () {
 						connection.release();
             res.json({ success: 5,err });

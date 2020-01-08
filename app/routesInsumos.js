@@ -177,7 +177,7 @@ module.exports = function (app,connection, passport,io) {
 
 });
 
-app.get('/list-categorias',checkConnection, function (req, res) {
+app.get('/list-categorias',checkConnection,(req,res,next) => { checkPermission(req,res,next,[1,2,3])} , function (req, res) {
   connection.query("SELECT * FROM insumos_categorias WHERE activo=1", function (err, result) {
     if (err) return res.json({ success: 0, error_msj: err });
     res.json({ success: 1, result });
@@ -227,6 +227,32 @@ app.post('/update-categorias', bodyJson,checkConnection, function (req, res) {
 
   }
 
+ function checkPermission (req,res,next,arrayPermission) {
+	 if(req.user)
+	 	{
+			connection.query("CALL users_listar_accesos(?)",req.user.id,function(err,result){
+				if(err){
+					return res.status(500).send("error de consulta SQL");
+				}
+				let arrayResult = JSON.parse(JSON.stringify(result[0]));
+				let indexEncontrado = arrayResult.findIndex(elem => {
+					return arrayPermission.indexOf(parseInt(elem.id_acceso)) > -1
+
+				});
+				if(indexEncontrado < 0){
+					return res.status(406).send("No posee permisos para acceder a esta sección");
+				}
+				next();
+			})
+
+		}
+		else
+		{
+		res.status(401).send("No inició sesión en la aplicación");
+		}
+
+
+}
 
 
 }
