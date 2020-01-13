@@ -118,6 +118,24 @@ module.exports = function (app,connection, passport) {
   });
 
 
+  
+  app.post('/disenoaproducir-modulo', bodyJson,checkConnection, function (req, res) {
+	let idUser = null;
+	if(req.user)
+		idUser = req.user.id;
+try {
+  connection.query("call modulo_diseno_a_produccion(?) ", [req.body.id], function (err, result) {
+	if (err) return res.json({ success: 0, error_msj: err });
+	res.json({ success: 1, result });
+  })
+} catch (e) {
+  return res.status(500).send({
+	error: true,
+	message: e.message
+  })
+}
+});
+
   app.post('/producir-modulo', bodyJson,checkConnection, function (req, res) {
 	let idUser = null;
 	if(req.user)
