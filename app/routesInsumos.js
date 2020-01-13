@@ -1,3 +1,5 @@
+
+var general = require('./functionsGeneral');
 var mysql = require('mysql');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
@@ -10,7 +12,8 @@ var bodyJson = bodyParser.json()
 
 module.exports = function (app,connection, passport,io) {
 
-  app.get('/list-insumos/:idinsumo', checkConnection,(req,res,next) => { checkPermission(req,res,next,[])},function (req, res) {
+
+  app.get('/list-insumos/:idinsumo', checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])},function (req, res) {
     var idInsumo = req.params.idinsumo;
       connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias  WHERE i.activo=1 && i.id = ?", [idInsumo], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
@@ -19,7 +22,7 @@ module.exports = function (app,connection, passport,io) {
   });
 
 
-  app.get('/list-insumos-sin-cantidad',checkConnection,(req,res,next) => { checkPermission(req,res,next,[])}, function (req, res) {
+  app.get('/list-insumos-sin-cantidad',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])}, function (req, res) {
 
       connection.query("SELECT i.id, i.descripcion, i.activo, i.unidad, i.minimo, ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE activo=1", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
@@ -30,7 +33,7 @@ module.exports = function (app,connection, passport,io) {
 
   });
 
-  app.get('/list-insumos',checkConnection,(req,res,next) => { checkPermission(req,res,next,[])}, function (req, res) {
+  app.get('/list-insumos',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])}, function (req, res) {
       connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.activo=1", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
 
@@ -38,7 +41,7 @@ module.exports = function (app,connection, passport,io) {
       })
   });
 
-  app.get('/list-insumos-alertados',checkConnection,(req,res,next) => { checkPermission(req,res,next,[])}, function (req, res) {
+  app.get('/list-insumos-alertados',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])}, function (req, res) {
     connection.query("call insumos_listar_alertados()", function (err, result) {
 
 
@@ -51,7 +54,7 @@ module.exports = function (app,connection, passport,io) {
 });
 
 
-  app.get('/select-insumos/:id', checkConnection,(req,res,next) => { checkPermission(req,res,next,[])},function (req, res) {
+  app.get('/select-insumos/:id', checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])},function (req, res) {
 
       connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.id=?", [req.params.id], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
@@ -62,7 +65,7 @@ module.exports = function (app,connection, passport,io) {
   });
 
 
-  app.post('/delete-insumos', bodyJson,checkConnection,(req,res,next) => { checkPermission(req,res,next,[22])}, function (req, res) {
+  app.post('/delete-insumos', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[22])}, function (req, res) {
 
       connection.query("UPDATE insumos set activo = 0 where id = ?", [req.body.id], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
@@ -72,7 +75,7 @@ module.exports = function (app,connection, passport,io) {
   });
 
 
-  app.post('/insert-categorias', bodyJson,checkConnection,(req,res,next) => { checkPermission(req,res,next,[21])}, function (req, res) {
+  app.post('/insert-categorias', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[21])}, function (req, res) {
 
     var arrayIns = [req.body.codigo, req.body.descripcion];
     connection.query("INSERT INTO insumos_categorias (codigo, descripcion) VALUES (?)", [arrayIns], function (err, result) {
@@ -83,7 +86,7 @@ module.exports = function (app,connection, passport,io) {
 
 });
 
-  app.post('/insert-insumos', bodyJson,checkConnection,(req,res,next) => { checkPermission(req,res,next,[22])}, function (req, res) {
+  app.post('/insert-insumos', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[22])}, function (req, res) {
 		var idUser = null;
 		if(req.user)
 			idUser = req.user.id;
@@ -113,7 +116,7 @@ module.exports = function (app,connection, passport,io) {
   });
 
 
-  app.post('/update-insumos-costos', bodyJson,checkConnection,(req,res,next) => { checkPermission(req,res,next,[23])}, function (req, res) {
+  app.post('/update-insumos-costos', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[23])}, function (req, res) {
     var userId = null;
     if(req.user)
     userId = req.user.id;
@@ -134,7 +137,7 @@ module.exports = function (app,connection, passport,io) {
 });
 
 
-  app.post('/update-insumos', bodyJson,checkConnection,(req,res,next) => { checkPermission(req,res,next,[22])}, function (req, res) {
+  app.post('/update-insumos', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[22])}, function (req, res) {
 			var userId = null;
 			if(req.user)
 			userId = req.user.id;
@@ -157,7 +160,7 @@ module.exports = function (app,connection, passport,io) {
   });
 
 
-  app.get('/get-siguiente/:idcategoria',checkConnection,(req,res,next) => { checkPermission(req,res,next,[])}, function (req, res) {
+  app.get('/get-siguiente/:idcategoria',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])}, function (req, res) {
     var idCategoria = req.params.idcategoria;
     connection.query("select max(numero)+1 as siguiente FROM boxrental.insumos where id_insumos_categorias = ?", [idCategoria], function (err, result) {
       if (err) return res.json({ success: 0, error_msj: err });
@@ -167,7 +170,7 @@ module.exports = function (app,connection, passport,io) {
 
 
 
-  app.post('/insert-categorias', bodyJson,checkConnection,(req,res,next) => { checkPermission(req,res,next,[21])}, function (req, res) {
+  app.post('/insert-categorias', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[21])}, function (req, res) {
 
     var arrayIns = [req.body.codigo, req.body.descripcion];
     connection.query("INSERT INTO insumos_categorias (codigo, descripcion) VALUES (?)", [arrayIns], function (err, result) {
@@ -178,21 +181,21 @@ module.exports = function (app,connection, passport,io) {
 
 });
 
-app.get('/list-categorias',checkConnection,(req,res,next) => { checkPermission(req,res,next,[])} , function (req, res) {
+app.get('/list-categorias',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])} , function (req, res) {
   connection.query("SELECT * FROM insumos_categorias WHERE activo=1", function (err, result) {
     if (err) return res.json({ success: 0, error_msj: err });
     res.json({ success: 1, result });
   })
 });
 
-app.post('/delete-categorias', bodyJson,checkConnection,(req,res,next) => { checkPermission(req,res,next,[21])}, function (req, res) {
+app.post('/delete-categorias', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[21])}, function (req, res) {
   connection.query("UPDATE insumos_categorias set activo = 0 where id = ?", [req.body.id], function (err, result) {
     if (err) return res.json({ success: 0, error_msj: err });
     res.json({ success: 1, result });
   })
 });
 
-app.get('/list-categorias/:idcategoria', checkConnection,(req,res,next) => { checkPermission(req,res,next,[])},function (req, res) {
+app.get('/list-categorias/:idcategoria', checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])},function (req, res) {
   var idCategoria = req.params.idcategoria;
     connection.query("SELECT * FROM insumos_categorias WHERE activo=1 && id = ?", [idCategoria], function (err, result) {
       if (err) return res.json({ suidcategoriaccess: 0, error_msj: err });
@@ -200,7 +203,7 @@ app.get('/list-categorias/:idcategoria', checkConnection,(req,res,next) => { che
     })
 });
 
-app.post('/update-categorias', bodyJson,checkConnection,(req,res,next) => { checkPermission(req,res,next,[21])}, function (req, res) {
+app.post('/update-categorias', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[21])}, function (req, res) {
 
   if (req.body.id) {
     var id_insumo = parseInt(req.body.id);
@@ -228,36 +231,7 @@ app.post('/update-categorias', bodyJson,checkConnection,(req,res,next) => { chec
 
   }
 
- function checkPermission (req,res,next,arrayPermission) {
-	 if(req.user)
-	 	{
-			if(arrayPermission.length > 0) {
-			connection.query("CALL users_listar_accesos(?)",req.user.id,function(err,result){
-				if(err){
-					return res.status(500).send("error de consulta SQL");
-				}
-				let arrayResult = JSON.parse(JSON.stringify(result[0]));
-				let indexEncontrado = arrayResult.findIndex(elem => {
-					return arrayPermission.indexOf(parseInt(elem.id_acceso)) > -1
 
-				});
-				if(indexEncontrado < 0){
-					return res.status(406).send("No posee permisos para acceder a esta sección");
-				}
-				next();
-			})
-		} else {
-			next();
-		}
-
-		}
-		else
-		{
-		res.status(401).send("No inició sesión en la aplicación");
-		}
-
-
-}
 
 
 }
