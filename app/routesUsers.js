@@ -1,4 +1,5 @@
 var mysql = require('mysql');
+var general = require('./functionsGeneral');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
 var dbconfig = require('../config/database');
@@ -11,22 +12,19 @@ var bodyJson = bodyParser.json()
 module.exports = function (app,connection, passport) {
 
 
-	app.get('/me',checkConnection, function (req, res) {
-		var user = req.user;
+	app.get('/me',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])}, function (req, res) {
+		var userId = req.user.id;
 
-		if (!req.isAuthenticated())
-			return res.json({ success: 3, error_msj: "no esta autenticado" });
-		// if they aren't redirect them to the home page
-		connection.query("SELECT * FROM users_type ut LEFT JOIN users_type_accesos uta ON ut.id=uta.id_user_type LEFT JOIN accesos a ON a.id = uta.id_acceso WHERE ut.id = ?",[user.id_users_type], function (err, result) {
+		connection.query("CALL get_user(?)",[userId], function (err, result) {
 				if (err) {
 					return res.json({ success: 0, error_msj: err });
 				}
-				else {
+			
 
-					res.json({ success: 1, user,result });
-				}
+					res.json({ success: 1,result });
+
 		})
-	
+
 
 
 	});
@@ -44,7 +42,7 @@ module.exports = function (app,connection, passport) {
 				}
 
 			})
-		
+
 
 
 	});
@@ -92,7 +90,7 @@ module.exports = function (app,connection, passport) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 			});
-		
+
 
 	});
 
@@ -106,7 +104,7 @@ module.exports = function (app,connection, passport) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 			});
-			
+
 
 
 	});
@@ -121,7 +119,7 @@ module.exports = function (app,connection, passport) {
 					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
 					res.json({ success: 1, result });
 				});
-				
+
 			} else {
 				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
 
@@ -139,7 +137,7 @@ module.exports = function (app,connection, passport) {
 					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
 					res.json({ success: 1, result });
 				});
-				
+
 			} else {
 				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
 
