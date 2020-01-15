@@ -1,4 +1,4 @@
-exports.checkPermission = function(req,res,next,arrayPermission) {
+exports.checkPermission = function(req,res,next,arrayPermission,connection) {
   if(req.user)
    {
      if(arrayPermission.length > 0) {

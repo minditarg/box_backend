@@ -33,6 +33,15 @@ module.exports = function (app, connection, passport) {
 
   });
 
+  app.get('/list-movimientos-stock', checkConnection, function (req, res) {
+
+    connection.query("CALL insumos_listar_movimientos_stock()", function (err, result) {
+      if (err) return res.state(500).send("error de consulta SQL");
+      res.json({ success: 1, result:result[0] });
+    })
+
+  });
+
 
   function checkConnection(req, res, next) {
     console.log(connection.state);
