@@ -29,6 +29,15 @@ module.exports = function (app,connection, passport) {
 
   });
 
+	app.get('/list-modulos-movimientos', checkConnection, function (req, res) {
+
+		connection.query("CALL modulos_listar_movimientos()", function (err, result) {
+			if (err) return res.state(500).send("error de consulta SQL");
+			res.json({ success: 1, result:result[0] });
+		})
+
+	});
+
   app.get('/list-modulos-diseno',checkConnection, function (req, res) {
 
     try {
@@ -46,7 +55,7 @@ module.exports = function (app,connection, passport) {
 
   });
 
-  
+
   app.get('/list-modulos-finalizados',checkConnection, function (req, res) {
 
     try {
@@ -65,7 +74,7 @@ module.exports = function (app,connection, passport) {
   });
 
 
-  
+
   app.get('/list-modulos-cancelados',checkConnection, function (req, res) {
 
     try {
@@ -118,7 +127,7 @@ module.exports = function (app,connection, passport) {
   });
 
 
-  
+
   app.post('/disenoaproducir-modulo', bodyJson,checkConnection, function (req, res) {
 	let idUser = null;
 	if(req.user)
@@ -219,7 +228,7 @@ let cantidad = req.params.cantidad;
 
 	});
 
-	
+
 	app.get('/modulos-montos/:idModulo', bodyJson, checkConnection, function (req, res) {
 		let idModulo = req.params.idModulo;
 				try {
@@ -233,7 +242,7 @@ let cantidad = req.params.cantidad;
 					  message: e.message
 					})
 				  }
-		
+
 			});
 
 
@@ -251,9 +260,9 @@ let cantidad = req.params.cantidad;
 					  message: e.message
 					})
 				  }
-		
+
 			});
-	
+
 
 
   app.post('/delete-modulo', bodyJson,checkConnection, function (req, res) {
