@@ -16,7 +16,7 @@ module.exports = function (app, connection, passport) {
     if (req.user && req.user.id)
       var userId = req.user.id;
     //console.log("req.body.cantidad ,req.body.id " + req.body.cantidad + " - " + req.body.id);
-    connection.query("CALL insumos_ajustar(?)", [[req.body.codigo,req.body.cantidad, userId]], function (err, result) {
+    connection.query("CALL insumos_ajustar(?)", [[req.body.id,req.body.cantidad, userId]], function (err, result) {
       if (err) return res.json({ success: 0, error_msj: err });
       res.json({ success: 1, result });
     })

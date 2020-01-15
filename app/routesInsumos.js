@@ -170,8 +170,8 @@ module.exports = function (app,connection, passport,io) {
 
 
   app.get('/get-siguiente/:idcategoria',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[],connection)}, function (req, res) {
-    var idCategoria = req.params.idcategoria;
-    connection.query("select max(numero)+1 as siguiente FROM boxrental.insumos where id_insumos_categorias = ?", [idCategoria], function (err, result) {
+    var idCategoria = parseInt(req.params.idcategoria);
+    connection.query("select max(numero) + 1 as siguiente FROM insumos where id_insumos_categorias = ?", [idCategoria], function (err, result) {
       if (err) return res.json({ success: 0, error_msj: err });
       res.json({ success: 1, result });
     })

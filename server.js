@@ -29,7 +29,7 @@ var connection = mysql.createPool({
   host: '50.63.166.215',
   user: 'matias',
   password: 'Holaardu',
-  database: 'boxrental'
+  database: 'boxrental_deploy'
 })
 
 var httpProxy = require('http-proxy');
