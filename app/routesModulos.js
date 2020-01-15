@@ -219,6 +219,42 @@ let cantidad = req.params.cantidad;
 
 	});
 
+	
+	app.get('/modulos-montos/:idModulo', bodyJson, checkConnection, function (req, res) {
+		let idModulo = req.params.idModulo;
+				try {
+					connection.query("CALL modulos_montos(?)", [idModulo], function (err, result) {
+					  if (err) return res.json({ success: 0, error_msj: err });
+					  res.json({ success: 1, modulos:result[0] });
+					})
+				  } catch (e) {
+					return res.status(500).send({
+					  error: true,
+					  message: e.message
+					})
+				  }
+		
+			});
+
+
+
+	app.get('/modulos-analizar-insumos/:idModulo', bodyJson, checkConnection, function (req, res) {
+		let idModulo = req.params.idModulo;
+				try {
+					connection.query("CALL modulos_analizar_insumos(?)", [idModulo], function (err, result) {
+					  if (err) return res.json({ success: 0, error_msj: err });
+					  res.json({ success: 1, modulos:result[0] });
+					})
+				  } catch (e) {
+					return res.status(500).send({
+					  error: true,
+					  message: e.message
+					})
+				  }
+		
+			});
+	
+
 
   app.post('/delete-modulo', bodyJson,checkConnection, function (req, res) {
 		let idUser = null;
