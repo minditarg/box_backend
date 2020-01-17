@@ -19,7 +19,7 @@ module.exports = function (app,connection, passport) {
 				if (err) {
 					return res.json({ success: 0, error_msj: err });
 				}
-			
+
 
 					res.json({ success: 1,result });
 
@@ -99,7 +99,7 @@ module.exports = function (app,connection, passport) {
 			if(req.user){
 					userMeId = req.user.id;
 			}
-			connection.query("SELECT ut.*,u.username FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id where u.id != ? AND u.activo = 1 ",[userMeId], function (err, result) {
+			connection.query("SELECT ut.desc as descripcion_users_type,ut.id as id_user_type,u.id,u.username,u.nombre FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id where u.id != ? AND u.activo = 1 ",[userMeId], function (err, result) {
 
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
