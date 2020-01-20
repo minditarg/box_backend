@@ -62,7 +62,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
-//app.use(express.static('public'));
+app.use(express.static('public'));
 app.use(function(req,res,next){
      res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
   res.header('Expires', '-1');
@@ -85,22 +85,14 @@ require('./app/routesPedidos.js')(app,connection, passport);
 
 /////////////////////
 //para development
-app.all("/*", function(req, res) {
-
-    apiProxy.web(req, res, {target: serverOne},function (e) {
-    return res.status(500).send({
-       error: true,
-       message: e.message
-    })})
-});
 //////////////////////
 ///////////////////////////
 //para el server de produccion
-/*
+
 app.get('/*', function (req, res) {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-*/
+
 
 // launch ======================================================================
 server.listen(port);
