@@ -99,9 +99,43 @@ module.exports = function (app,connection, passport) {
 			if(req.user){
 					userMeId = req.user.id;
 			}
-			connection.query("SELECT ut.desc as descripcion_users_type,ut.id as id_user_type,u.id,u.username,u.nombre FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id where u.id != ? AND u.activo = 1 ",[userMeId], function (err, result) {
+			connection.query("SELECT ut.descripcion as descripcion_users_type,ut.id as id_user_type,u.id,u.username,u.nombre FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id where u.id != ? AND u.activo = 1 ",[userMeId], function (err, result) {
 
 				if (err) return res.json({ success: 0, error_msj: err });
+				res.json({ success: 1, result });
+			});
+
+
+
+	});
+
+
+	app.get('/list-tipos-usuarios',isLoggedIn, checkConnection,function (req, res) {
+		var userMeId = 0;
+			if(req.user){
+					userMeId = req.user.id;
+			}
+			connection.query("CALL users_listar_tipos_usuarios()", function (err, result) {
+
+				if (err) return res.status(500).send("error de consulta SQL");
+				res.json({ success: 1, result: result[0] });
+			});
+
+
+
+	});
+
+	app.post('/insert-tipo-usuario',isLoggedIn,bodyJson, checkConnection,function (req, res) {
+
+			connection.query("CALL users_insertar_tipos_usuarios(?)",[req.body.descripcion], function (err, result) {
+
+				if (err) {
+					if(err.sqlMessage)
+						return res.status(500).send(err.sqlMessage)
+						else
+						return res.status(500).send("Error de consulta SQL");
+							
+				}
 				res.json({ success: 1, result });
 			});
 

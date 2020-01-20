@@ -155,7 +155,14 @@ module.exports = function (app,connection, passport,io) {
         var id_insumo = parseInt(req.body.id);
         var arrayUpdate = [req.body.categoria,req.body.numero,req.body.id,req.body.minimo,req.body.descripcion,req.body.unidad, req.body.alertar, req.body.autorizar, userId];
         connection.query("CALL insumos_modificar(?)", [arrayUpdate], function (err, result) {
-          if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar insumo", err });
+          if (err){
+						console.log(err.sqlMessage);
+						if(err.sqlMessage)
+						return res.status(500).send(err.sqlMessage)
+						else
+						return res.status(500).send("ha ocurrido un error al intentar actualizar insumo");
+
+					}
 
 					res.json({ success: 1, result });
 
