@@ -125,6 +125,20 @@ module.exports = function (app,connection, passport) {
 
 	});
 
+
+	app.get('/list-tipo-usuario/:idTipoUsuario',isLoggedIn, checkConnection,function (req, res) {
+		let idTipoUsuario = req.params.idTipoUsuario;
+			connection.query("CALL users_detalle_tipo_usuario(?)",[ idTipoUsuario ], function (err, result) {
+
+				if (err) return res.status(500).send("error de consulta SQL");
+				res.json({ success: 1, tipoUsuario: result[0],detalleAccesos: result[1],accesos: result[2] });
+			});
+
+
+
+	});
+
+
 	app.post('/insert-tipo-usuario',isLoggedIn,bodyJson, checkConnection,function (req, res) {
 
 			connection.query("CALL users_insertar_tipos_usuarios(?)",[req.body.descripcion], function (err, result) {
@@ -134,7 +148,7 @@ module.exports = function (app,connection, passport) {
 						return res.status(500).send(err.sqlMessage)
 						else
 						return res.status(500).send("Error de consulta SQL");
-							
+
 				}
 				res.json({ success: 1, result });
 			});
