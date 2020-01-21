@@ -138,6 +138,18 @@ module.exports = function (app,connection, passport) {
 
 	});
 
+	app.get('/list-accesos',isLoggedIn, checkConnection,function (req, res) {
+		let idTipoUsuario = req.params.idTipoUsuario;
+			connection.query("SELECT * FROM accesos", function (err, result) {
+
+				if (err) return res.status(500).send("error de consulta SQL");
+				res.json({ success: 1, result });
+			});
+
+
+
+	});
+
 
 	app.post('/insert-tipo-usuario',isLoggedIn,bodyJson, checkConnection,function (req, res) {
 
@@ -156,6 +168,76 @@ module.exports = function (app,connection, passport) {
 
 
 	});
+
+	app.post('/update-tipo-usuario', bodyJson, checkConnection, function (req, res) {
+
+    connection.getConnection(function(err, connection) {
+      if (err) {
+        connection.release();
+        throw err; }
+    connection.beginTransaction(function (err) {
+      if (err) {
+        connection.release();
+        throw err; }
+      var datenow = new Date();
+      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+      //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
+      var updObj = {
+        descripcion: req.body.descripcion
+      }
+      connection.query("UPDATE users_type SET ? WHERE id = ?", [updObj, req.body.id], function (error, result) {
+        if (error) {
+          return connection.rollback(function () {
+            connection.release();
+            throw error;
+          });
+        }
+
+        connection.query("DELETE FROM users_type_accesos WHERE id_user_type = ?", req.body.id, function (error, result) {
+          if (error) {
+            return connection.rollback(function () {
+              connection.release();
+              throw error;
+            });
+          }
+
+          var sql = "INSERT INTO users_type_accesos (id_user_type,id_acceso) VALUES ?";
+          var values = [];
+          req.body.accesos.forEach(element => {
+						if(element.checked)
+            values.push([element.id_users_type,element.id]);
+          });
+
+
+
+          connection.query(sql, [values], function (error, results) {
+
+            if (error) {
+              return connection.rollback(function () {
+                connection.release();
+                throw error;
+              });
+            }
+
+            connection.commit(function (err) {
+              if (err) {
+                return connection.rollback(function () {
+                  connection.release();
+                  throw err;
+                });
+              } else {
+                connection.release();
+              res.json({ success: 1, results });
+            }
+            });
+          });
+        });
+      });
+    });
+  })
+  });
+
+
 
 	app.post('/update-user',isLoggedIn, bodyJson,checkConnection, function (req, res) {
 
