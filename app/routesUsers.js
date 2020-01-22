@@ -153,17 +153,64 @@ module.exports = function (app,connection, passport) {
 
 	app.post('/insert-tipo-usuario',isLoggedIn,bodyJson, checkConnection,function (req, res) {
 
-			connection.query("CALL users_insertar_tipos_usuarios(?)",[req.body.descripcion], function (err, result) {
 
-				if (err) {
-					if(err.sqlMessage)
-						return res.status(500).send(err.sqlMessage)
-						else
-						return res.status(500).send("Error de consulta SQL");
+			connection.getConnection(function(err, connection) {
+	      if (err) {
+	        connection.release();
+	        throw err; }
+	    connection.beginTransaction(function (err) {
+	      if (err) {
+	        connection.release();
+	        throw err; }
+	      var datenow = new Date();
+	      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+	      //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
 
-				}
-				res.json({ success: 1, result });
-			});
+	      connection.query("CALL users_insertar_tipos_usuarios(?)", [req.body.descripcion], function (error, result) {
+	        if (error) {
+	          return connection.rollback(function () {
+	            connection.release();
+	            throw error;
+	          });
+	        }
+				let resultado =	JSON.parse(JSON.stringify(result[0]))
+					let insertedId = parseInt(resultado[0].inserted_id);
+				
+
+	          var sql = "INSERT INTO users_type_accesos (id_user_type,id_acceso) VALUES ?";
+	          var values = [];
+	          req.body.accesos.forEach(element => {
+							if(element.checked)
+	            values.push([insertedId,element.id]);
+	          });
+
+
+
+	          connection.query(sql, [values], function (error, results) {
+
+	            if (error) {
+	              return connection.rollback(function () {
+	                connection.release();
+	                throw error;
+	              });
+	            }
+
+	            connection.commit(function (err) {
+	              if (err) {
+	                return connection.rollback(function () {
+	                  connection.release();
+	                  throw err;
+	                });
+	              } else {
+	                connection.release();
+	              res.json({ success: 1, results });
+	            }
+	            });
+	          });
+
+	      });
+	    });
+	  })
 
 
 
