@@ -31,7 +31,7 @@ module.exports = function (app,connection, passport,io) {
   });
 
   app.get('/list-pedidos',checkConnection, function (req, res) {
-      connection.query("SELECT p.id, i.descripcion, p.cantidad, CONCAT(ic.codigo, i.numero) as identificador FROM boxrental.pedidos p inner join insumos i on i.id = p.id_insumo inner join insumos_categorias ic on ic.id = i.id_insumos_categorias where p.activo = 1", function (err, result) {
+      connection.query("SELECT p.id as identificador, p.fecha, u.username FROM boxrental.pedidos p inner join users u on p.id_usuario = u.id ORDER BY p.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
 
         res.json({ success: 1, result });
@@ -83,19 +83,104 @@ module.exports = function (app,connection, passport,io) {
 
 // });
 
-  app.post('/insert-pedidos', bodyJson,checkConnection, function (req, res) {
-		var idUser = null;
-		if(req.user)
-      idUser = req.user.id;
+  // app.post('/insert-pedidos', bodyJson,checkConnection, function (req, res) {
+	// 	var idUser = null;
+	// 	if(req.user)
+  //     idUser = req.user.id;
 
-      var arrayIns = [req.body.detalle[0].id, req.body.detalle[0].cantidad, idUser];
+  //     var arrayIns = [req.body.detalle[0].id, req.body.detalle[0].cantidad, idUser];
 
-      connection.query("CALL pedidos_crear(?)", [arrayIns], function (err, result) {
-        if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar crear un pedido", err });
-        res.json({ success: 1, result });
-      })
+  //     connection.query("CALL pedidos_crear(?)", [arrayIns], function (err, result) {
+  //       if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar crear un pedido", err });
+  //       res.json({ success: 1, result });
+  //     })
+
+  //     });
+
+  app.post('/insert-pedidos', bodyJson, checkConnection, function (req, res) {
+
+    connection.getConnection(function (err, connection) {
+      if (err) {
+        connection.release();
+        res.json({ success: 0, err });
+      }
+
+
+      connection.beginTransaction(function (err) {
+        if (err) {
+          connection.release();
+          res.json({ success: 0, err });
+        }
+        var datenow = new Date();
+        var userId = null;
+        if (req.user)
+          userId = req.user.id;
+        //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+        var arrayIns = [userId];
+        connection.query("CALL pedidos_crear(?)", [arrayIns], function (err, result) {
+          if (err) {
+            return connection.rollback(function () {
+              connection.release();
+              res.json({ success: 0, err });
+            });
+          }
+
+          var insertedEntrega = result[0][0].id_entrega;
+          var insertedModuloMovimiento = result[0][0].id_modulo_movimiento;
+
+          var values = [];
+          req.body.detalle.forEach(element => {
+            values.push([insertedEntrega,req.body.id_modulo,element.id_modulo_insumo,insertedModuloMovimiento, element.cantidad, userId ]);
+          });
+
+          recorrerArrayAgregar(values,0,connection, res,function(){
+            connection.commit(function (err) {
+              if (err) {
+                return connection.rollback(function () {
+                  connection.release();
+                  res.json({ success: 0, err });
+                });
+              }
+
+              res.json({ success: 1 });
+            });
+          });
+        });
 
       });
+    })
+
+  });
+
+
+  function recorrerArrayAgregar(array, index, connection, res, callback) {
+
+    if (array.length > 0) {
+      let sql = "CALL pedidos_agregar_insumo(?)";
+
+      connection.query(sql, [array[index]], function (err, results) {
+
+        if (err) {
+          return connection.rollback(function () {
+            connection.release();
+            res.json({ success: 0, err });
+          });
+        }
+
+        if (array.length > index + 1) {
+          recorrerArrayAgregar(array, index + 1, connection, res, callback)
+        }
+        else {
+          callback();
+        }
+
+      })
+    } else {
+      callback();
+    }
+
+  }
+
 
 
   app.post('/update-pedidos', bodyJson,checkConnection, function (req, res) {

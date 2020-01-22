@@ -356,8 +356,10 @@ let cantidad = req.params.cantidad;
 
 				var insertedId = result[0][0].id;
 				var values = [];
+				var cantidad_requerida = 0;
 				req.body.detalle.forEach((element,index) => {
-					values.push([element.cantidad_requerida,insertedId, element.id,index,idUser]);
+					cantidad_requerida = element.cantidad_requerida.replace(",", ".");
+					values.push([parseFloat(cantidad_requerida),insertedId, element.id,index,idUser]);
 				});
 			recorrerArrayAgregar(values,0,connection,res,function(){
 
