@@ -74,7 +74,7 @@ module.exports = function (app, connection, passport) {
         if (req.user)
           userId = req.user.id;
         //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-        var arrayIns = [req.body.id_modulo, req.body.comentario, req.body.referencia, userId];
+        var arrayIns = [req.body.id_modulo, req.body.motivo, req.body.referencia, userId];
 
         connection.query("CALL devoluciones_crear(?)", [arrayIns], function (error, result) {
           if (error) {
