@@ -134,7 +134,9 @@ module.exports = function (app,connection, passport,io) {
       var id_insumo = parseInt(req.body.id);
      // var objectoUpdate = {costo: req.body.costo, fecha_actualizacion_costo: new Date()};
      // connection.query("UPDATE insumos SET ? where id = ?", [objectoUpdate, id_insumo], function (err, result) {
-      connection.query("call update_insumos_costo(?)", [[req.body.costo, new Date(), id_insumo, userId]], function (err, result) {
+     //console.log("COSTO: " + req.body.costo);
+      var costo = req.body.costo.replace(",", ".");
+     connection.query("call update_insumos_costo(?)", [[parseFloat(costo), new Date(), id_insumo, userId]], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar el costo del insumo", err });
         else{
         res.json({ success: 1, result });
