@@ -32,7 +32,7 @@ module.exports = function (app,connection, passport) {
   app.get('/list-users_type', checkConnection,function (req, res) {
 
 
-			connection.query("SELECT * FROM users_type", function (err, result) {
+			connection.query("SELECT * FROM users_type WHERE activo = 1", function (err, result) {
 				if (err) {
 					return res.json({ success: 0, error_msj: err });
 				}
@@ -99,7 +99,7 @@ module.exports = function (app,connection, passport) {
 			if(req.user){
 					userMeId = req.user.id;
 			}
-			connection.query("SELECT ut.descripcion as descripcion_users_type,ut.id as id_user_type,u.id,u.username,u.nombre FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id where u.id != ? AND u.activo = 1 ",[userMeId], function (err, result) {
+			connection.query("SELECT ut.descripcion as descripcion_users_type,ut.id as id_user_type,u.id,u.username,u.nombre FROM users u LEFT JOIN (SELECT * FROM users_type WHERE activo = 1) as ut ON u.id_users_type = ut.id WHERE u.id != ? AND u.activo = 1 ",[userMeId], function (err, result) {
 
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
@@ -175,7 +175,7 @@ module.exports = function (app,connection, passport) {
 	        }
 				let resultado =	JSON.parse(JSON.stringify(result[0]))
 					let insertedId = parseInt(resultado[0].inserted_id);
-				
+
 
 	          var sql = "INSERT INTO users_type_accesos (id_user_type,id_acceso) VALUES ?";
 	          var values = [];
@@ -183,6 +183,9 @@ module.exports = function (app,connection, passport) {
 							if(element.checked)
 	            values.push([insertedId,element.id]);
 	          });
+
+						if(values.length <= 0)
+							sql = "SELECT @no_data_accesos";
 
 
 
@@ -256,6 +259,10 @@ module.exports = function (app,connection, passport) {
           });
 
 
+					if(values.length <= 0)
+						sql = "SELECT @no_data_accesos";
+
+
 
           connection.query(sql, [values], function (error, results) {
 
@@ -321,6 +328,25 @@ module.exports = function (app,connection, passport) {
 			}
 
 	});
+
+
+	app.post('/delete-tipo-usuario', bodyJson,checkConnection, function (req, res) {
+
+			if (req.body.id) {
+				var id_users = parseInt(req.body.id);
+				var objectoUpdate = { activo: 0 };
+				connection.query("UPDATE users_type SET ? where id = ?", [objectoUpdate, id_users], function (err, result) {
+					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
+					res.json({ success: 1, result });
+				});
+
+			} else {
+				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
+
+			}
+
+	});
+
 
   app.get('/logout', function (req, res) {
 		req.logout();
