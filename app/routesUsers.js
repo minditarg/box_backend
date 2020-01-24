@@ -27,6 +27,7 @@ module.exports = function (app,connection, passport) {
 
 
 
+
 	});
 
   app.get('/list-users_type', checkConnection,function (req, res) {
@@ -42,6 +43,8 @@ module.exports = function (app,connection, passport) {
 				}
 
 			})
+
+
 
 
 
