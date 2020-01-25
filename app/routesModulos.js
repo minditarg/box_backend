@@ -472,6 +472,7 @@ let cantidad = req.params.cantidad;
 				arrayMod = [objeto.cantidad_requerida,id,objeto.id,index,idUser];
 
 			} else if(objeto.modificado) {
+				console.log("cantidad_requerida: " + objeto.cantidad_requerida);
 					sql = "CALL modulos_modificar_cantidad_insumo(?)";
 					arrayMod = [objeto.cantidad_requerida,objeto.id_modulo_insumo,index,idUser];
 
