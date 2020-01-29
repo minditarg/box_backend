@@ -252,7 +252,7 @@ let cantidad = req.params.cantidad;
 				try {
 					connection.query("CALL modulos_analizar_insumos(?)", [idModulo], function (err, result) {
 					  if (err) return res.json({ success: 0, error_msj: err });
-					  res.json({ success: 1, modulos:result[0] });
+					  res.json({ success: 1, modulo:result[0], insumos:result[1] });
 					})
 				  } catch (e) {
 					return res.status(500).send({
