@@ -358,7 +358,7 @@ let cantidad = req.params.cantidad;
 				var values = [];
 				var cantidad_requerida = 0;
 				req.body.detalle.forEach((element,index) => {
-					values.push([parseFloat(cantidad_requerida),insertedId, element.id,index,idUser]);
+					values.push([element.cantidad_requerida,insertedId, element.id,index,idUser]);
 				});
 			recorrerArrayAgregar(values,0,connection,res,function(){
 
