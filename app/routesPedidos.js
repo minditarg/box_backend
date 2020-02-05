@@ -251,7 +251,7 @@ module.exports = function (app, connection, passport) {
     connection.query("SELECT * FROM pedidos p  WHERE p.activo = 1 AND p.id = ? ", [idPlantilla], function (err, resultPlantilla) {
       if (err) return res.json({ success: 0, error_msj: err });
 
-      connection.query("SELECT i.*,pi.cantidad,pi.id as id_pedidos_insumos,ic.codigo FROM pedidos_insumos pi LEFT JOIN insumos i ON i.id = pi.id_insumo LEFT JOIN insumos_categorias ic ON i.id_insumos_categorias = ic.id  WHERE pi.activo = 1 AND pi.id_pedido = ? ", [idPlantilla], function (err, resultInsumos) {
+      connection.query("SELECT pi.cantidad, i.descripcion, i.unidad, i.costo, i.numero, i.id, i.id_insumos_categorias,pi.id as id_pedidos_insumos,ic.codigo FROM pedidos_insumos pi LEFT JOIN insumos i ON i.id = pi.id_insumo LEFT JOIN insumos_categorias ic ON i.id_insumos_categorias = ic.id  WHERE pi.activo = 1 AND pi.id_pedido = ? ", [idPlantilla], function (err, resultInsumos) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, pedido: resultPlantilla, insumos: resultInsumos });
 
