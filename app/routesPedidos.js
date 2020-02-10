@@ -299,6 +299,23 @@ try {
 
   });
 
+  app.get('/list-pedidos-diseno-solicitados', checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT * FROM pedidos WHERE activo = 1 AND id_pedidos_estados IN (1,2) ORDER BY id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
   app.get('/list-pedidos-cancelados',checkConnection, function (req, res) {
 
     try {
