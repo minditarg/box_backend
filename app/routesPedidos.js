@@ -226,12 +226,134 @@ module.exports = function (app, connection, passport) {
   }
 
 
+  
+app.post('/cancelar-pedido', bodyJson,checkConnection, function (req, res) {
+	let idUser = null;
+	if(req.user)
+		idUser = req.user.id;
+try {
+  connection.query("UPDATE pedidos SET id_pedidos_estados = 4 WHERE id = ?", [req.body.id], function (err, result) {
+	if (err) return res.json({ success: 0, error_msj: err });
+	res.json({ success: 1, result });
+  })
+} catch (e) {
+  return res.status(500).send({
+	error: true,
+	message: e.message
+  })
+}
+});
+
+
+  app.post('/pausar-pedido', bodyJson,checkConnection, function (req, res) {
+    console.log("PAUSAR PEDIDO");
+    let idUser = null;
+    if(req.user)
+      idUser = req.user.id;
+  try {
+    connection.query("UPDATE pedidos SET id_pedidos_estados = 3 WHERE id = ?", [req.body.id], function (err, result) {
+    if (err) return res.json({ success: 0, error_msj: err });
+    res.json({ success: 1, result });
+    })
+  } catch (e) {
+    return res.status(500).send({
+    error: true,
+    message: e.message
+    })
+  }
+  });
+
+
+  app.post('/disenoasolicitado-pedido', bodyJson,checkConnection, function (req, res) {
+    let idUser = null;
+    if(req.user)
+      idUser = req.user.id;
+  try {
+    connection.query("call pedido_diseno_a_solicitado(?) ", [req.body.id], function (err, result) {
+    if (err) return res.json({ success: 0, error_msj: err });
+    res.json({ success: 1, result });
+    })
+  } catch (e) {
+    return res.status(500).send({
+    error: true,
+    message: e.message
+    })
+  }
+  });
 
 
   app.get('/list-pedidos', checkConnection, function (req, res) {
 
     try {
-      connection.query("SELECT * FROM pedidos WHERE activo = 1 ORDER BY id DESC", function (err, result) {
+      connection.query("SELECT * FROM pedidos WHERE activo = 1 AND id_pedidos_estados = 2 ORDER BY id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
+  app.get('/list-pedidos-cancelados',checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT * FROM pedidos WHERE activo = 1 AND id_pedidos_estados = 4 ORDER BY id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
+  app.get('/list-pedidos-pausados',checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT * FROM pedidos WHERE activo = 1 AND id_pedidos_estados = 3 ORDER BY id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
+  app.get('/list-pedidos-finalizados',checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT * FROM pedidos WHERE activo = 1 AND id_pedidos_estados = 5 ORDER BY id DESC", function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+
+  });
+
+  app.get('/list-pedidos-diseno',checkConnection, function (req, res) {
+
+    try {
+      connection.query("SELECT p.* FROM pedidos p WHERE p.activo = 1 AND p.id_pedidos_estados = 1 ORDER BY p.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
@@ -261,7 +383,24 @@ module.exports = function (app, connection, passport) {
     })
 
   });
+  
 
+  app.post('/finalizar-pedido', bodyJson,checkConnection, function (req, res) {
+    let idUser = null;
+    if(req.user)
+      idUser = req.user.id;
+  try {
+    connection.query("UPDATE pedidos SET id_pedidos_estados = 5 WHERE id = ?", [req.body.id], function (err, result) {
+    if (err) return res.json({ success: 0, error_msj: err });
+    res.json({ success: 1, result });
+    })
+  } catch (e) {
+    return res.status(500).send({
+    error: true,
+    message: e.message
+    })
+  }
+  });
 
   app.post('/delete-pedido', bodyJson, checkConnection, function (req, res) {
     try {
