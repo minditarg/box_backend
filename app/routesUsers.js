@@ -6,7 +6,8 @@ var dbconfig = require('../config/database');
 var bodyUrlencoded = bodyParser.urlencoded({
 	extended: true
 });
-var bodyJson = bodyParser.json()
+var bodyJson = bodyParser.json();
+var bcrypt = require('bcrypt-nodejs');
 
 
 module.exports = function (app,connection, passport) {
@@ -313,6 +314,24 @@ module.exports = function (app,connection, passport) {
 			}
 
 	});
+
+
+	app.post('/update-pass',isLoggedIn, bodyJson,checkConnection, function (req, res) {
+
+		if (req.body.id) {
+			var id_users = parseInt(req.body.id);
+			var objectoUpdate = { password:bcrypt.hashSync(req.body.newpass, null, null) };
+			connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id_users], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
+				res.json({ success: 1, result });
+			});
+
+		} else {
+			res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
+
+		}
+
+});
 
 	app.post('/delete-user', bodyJson,checkConnection, function (req, res) {
 
