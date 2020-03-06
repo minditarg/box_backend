@@ -32,7 +32,18 @@ module.exports = function (app,connection, passport) {
 	app.get('/list-modulos-movimientos', checkConnection, function (req, res) {
 
 		connection.query("CALL modulos_listar_movimientos()", function (err, result) {
-			if (err) return res.state(500).send("error de consulta SQL");
+			if (err) return res.status(500).send("error de consulta SQL");
+			res.json({ success: 1, result:result[0] });
+		})
+
+	});
+
+
+	app.get('/list-modulos-movimientos-insumos/:idModulo', checkConnection, function (req, res) {
+		let idModulo = parseInt(req.params.idModulo);
+
+		connection.query("CALL modulos_listar_movimientos_insumos(?)",[idModulo], function (err, result) {
+			if (err) return res.status(500).send("error de consulta SQL");
 			res.json({ success: 1, result:result[0] });
 		})
 
