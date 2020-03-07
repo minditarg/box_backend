@@ -345,7 +345,7 @@ let cantidad = req.params.cantidad;
 				  res.json({ success: 0,err }); }
 			var datenow = new Date();
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-			var arrayIns = [req.body.chasis, req.body.descripcion,'Cliente',idUser];
+			var arrayIns = [req.body.chasis, req.body.cotizacion, req.body.descripcion,'Cliente',idUser];
 			connection.query("CALL modulos_crear (?)", [arrayIns], function (err, result) {
 				if (err) {
 					return connection.rollback(function () {
@@ -427,7 +427,7 @@ let cantidad = req.params.cantidad;
 				  res.json({ success: 0,err }); }
 
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-			var arrayMod = [req.body.chasis, req.body.descripcion,'Cliente','Motivo1',req.body.id,idUser];
+			var arrayMod = [req.body.chasis, req.body.cotizacion, req.body.descripcion,'Cliente','Motivo1',req.body.id,idUser];
 			connection.query("CALL modulos_modificar (?)", [arrayMod], function (err, result) {
 				if (err) {
 					return connection.rollback(function () {

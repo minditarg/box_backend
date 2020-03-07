@@ -71,7 +71,16 @@ module.exports = function (app, connection, passport) {
 
   });
 
+  app.get('/detalle-pedidos/:idInsumo', checkConnection, function (req, res) {
+    var idInsumo = req.params.idInsumo;
+    //var cantidadRegistros = parseInt(req.params.cantidadRegistros);
+    connection.query("CALL pedidos_detalle (?)", [idInsumo], function (err, result) {
+      if (err) return res.json({ success: 0, error_msj: err });
+      res.json({ success: 1, result });
+    })
 
+  });
+  
 
   app.post('/update-pedido', bodyJson, checkConnection, function (req, res) {
 
