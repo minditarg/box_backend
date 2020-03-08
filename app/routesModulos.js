@@ -39,7 +39,7 @@ module.exports = function (app,connection, passport) {
 	});
 
 
-	app.get('/list-modulos-movimientos-insumos/:idModulo', checkConnection, function (req, res) {
+	app.get('/list-modulos-movimientos-insumos/:idModuloMovimiento', checkConnection, function (req, res) {
 		let idModulo = parseInt(req.params.idModulo);
 
 		connection.query("CALL modulos_listar_movimientos_insumos(?)",[idModulo], function (err, result) {
@@ -366,10 +366,11 @@ let cantidad = req.params.cantidad;
 				}
 
 				var insertedId = result[0][0].id;
+				var insertedIdMovimiento = result[0][0].id_modulo_movimiento;
 				var values = [];
 				var cantidad_requerida = 0;
 				req.body.detalle.forEach((element,index) => {
-					values.push([element.cantidad_requerida,insertedId, element.id,index,idUser]);
+					values.push([element.cantidad_requerida,insertedId,insertedIdMovimiento, element.id,index,idUser]);
 				});
 			recorrerArrayAgregar(values,0,connection,res,function(){
 
@@ -447,7 +448,9 @@ let cantidad = req.params.cantidad;
 					});
 				}
 
-			recorrerArrayModificar(req.body.detalle,req.body.id,idUser,0,connection,res,function(){
+				var id_modulo_movimiento = result[0][0].id_modulo_movimiento;
+
+			recorrerArrayModificar(req.body.detalle,req.body.id, id_modulo_movimiento, idUser,0,connection,res,function(){
 
 					connection.commit(function (err) {
 						if (err) {
@@ -470,25 +473,24 @@ let cantidad = req.params.cantidad;
 	});
 
 
-	 function recorrerArrayModificar(array,id,idUser, index,connection,res, callback) {
+	 function recorrerArrayModificar(array,id,id_modulo_movimiento, idUser, index,connection,res, callback) {
 
     if (array.length > 0) {
-
       let sql;
 			let objeto = array[index];
 			let arrayMod;
 			if(objeto.insertado){
 				sql = "CALL modulos_agregar_insumo(?)";
-				arrayMod = [objeto.cantidad_requerida,id,objeto.id,index,idUser];
+				arrayMod = [objeto.cantidad_requerida,id, id_modulo_movimiento, objeto.id,index,idUser];
 
 			} else if(objeto.modificado) {
 				console.log("cantidad_requerida: " + objeto.cantidad_requerida);
 					sql = "CALL modulos_modificar_cantidad_insumo(?)";
-					arrayMod = [objeto.cantidad_requerida,objeto.id_modulo_insumo,index,idUser];
+					arrayMod = [objeto.cantidad_requerida,id_modulo_movimiento,objeto.id_modulo_insumo,index,idUser];
 
 			} else if(objeto.eliminado) {
 				sql = "CALL modulos_eliminar_insumo(?)";
-					arrayMod = [objeto.id_modulo_insumo,idUser];
+					arrayMod = [objeto.id_modulo_insumo,id_modulo_movimiento,idUser];
 
 			} else if(objeto.id_modulo_insumo) {
 				sql = "CALL modulos_ordenar_insumo(?)";
@@ -506,7 +508,7 @@ let cantidad = req.params.cantidad;
         }
 
         if (array.length > index + 1) {
-          recorrerArrayModificar(array,id,idUser, index + 1,connection,res, callback)
+          recorrerArrayModificar(array,id,id_modulo_movimiento,idUser, index + 1,connection,res, callback)
         }
         else {
           callback();
