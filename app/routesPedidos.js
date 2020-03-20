@@ -379,7 +379,7 @@ try {
   app.get('/list-pedidos-diseno',checkConnection, function (req, res) {
 
     try {
-      connection.query("SELECT p.* FROM pedidos p WHERE p.activo = 1 AND p.id_pedidos_estados = 1 ORDER BY p.id DESC", function (err, result) {
+      connection.query("SELECT p.*, sum(pi.cantidad * i.costo) as precio FROM pedidos p inner join pedidos_insumos pi on pi.id_pedido = p.id inner join insumos i on i.id = pi.id_insumo WHERE p.activo = 1 AND p.id_pedidos_estados = 1 group by pi.id_pedido ORDER BY p.id DESC", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
 
