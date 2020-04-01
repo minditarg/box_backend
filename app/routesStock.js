@@ -22,6 +22,18 @@ module.exports = function (app, connection, passport) {
     })
 
   });
+  
+  
+  app.get('/detalle-stock/:idInsumo/', checkConnection, function (req, res) {
+    var idInsumo = req.params.idInsumo;
+    var cantidadRegistros = parseInt(req.params.cantidadRegistros);
+    connection.query("SELECT m.descripcion,m.descripcion_id, u.username,aus.id_movimiento,aus.fecha, aus.cantidad,aus.id_ingreso,aus.id_entrega,aus.id_devolucion,aus.minimo,aus.parcial,i.referencia FROM insumos_movimientos as aus LEFT JOIN ingresos as i ON aus.id_ingreso = i.id LEFT JOIN movimientos as m ON aus.id_movimiento = m.id LEFT JOIN users as u ON u.id = aus.id_user   WHERE aus.id_insumo = ? ORDER BY aus.id DESC", [idInsumo], function (err, result) {
+      if (err) return res.json({ success: 0, error_msj: err });
+      res.json({ success: 1, result });
+    })
+
+
+  });
 
   app.get('/detalle-stock/:idInsumo/:cantidadRegistros', checkConnection, function (req, res) {
     var idInsumo = req.params.idInsumo;
