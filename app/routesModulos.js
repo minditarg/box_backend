@@ -40,10 +40,10 @@ module.exports = function (app,connection, passport) {
 
 
 	app.get('/list-modulos-movimientos-insumos/:idModuloMovimiento', checkConnection, function (req, res) {
-		let idModulo = parseInt(req.params.idModulo);
+		let idModuloMovimiento = parseInt(req.params.idModuloMovimiento);
 
-		connection.query("CALL modulos_listar_movimientos_insumos(?)",[idModulo], function (err, result) {
-			if (err) return res.status(500).send("error de consulta SQL");
+		connection.query("CALL modulos_listar_movimientos_insumos(?)",[idModuloMovimiento], function (err, result) {
+			if (err) return res.status(500).send(err.sqlMessage);
 			res.json({ success: 1, result:result[0] });
 		})
 
@@ -141,11 +141,18 @@ module.exports = function (app,connection, passport) {
 
   app.post('/disenoaproducir-modulo', bodyJson,checkConnection, function (req, res) {
 	let idUser = null;
+	let chasis = null;
 	if(req.user)
 		idUser = req.user.id;
+
+	if(req.body.chasis.trim())
+		chasis = req.body.chasis.trim();
+		else
+		return res.status(500).send("Debe ingresar un numero de chasis valido");
+		
 try {
-  connection.query("call modulo_diseno_a_produccion(?) ", [req.body.id], function (err, result) {
-	if (err) return res.json({ success: 0, error_msj: err });
+  connection.query("call modulo_diseno_a_produccion(?) ", [[req.body.id,chasis]], function (err, result) {
+	if (err) return res.status(500).send(err.sqlMessage);
 	res.json({ success: 1, result });
   })
 } catch (e) {
