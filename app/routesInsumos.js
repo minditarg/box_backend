@@ -110,9 +110,18 @@ app.get('/list-insumos-stock-insuficiente',checkConnection,(req,res,next) => { g
   app.post('/insert-insumos', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[22],connection)}, function (req, res) {
 		var idUser = null;
 		if(req.user)
-			idUser = req.user.id;
+      idUser = req.user.id;
+      
+      if(req.body.alertar == "")
+        req.body.alertar = 0;
+
+      if(req.body.autorizar == "")
+        req.body.autorizar = 0;
 
       var arrayIns = [req.body.categoria,req.body.numero, req.body.descripcion, req.body.unidad, req.body.minimo,req.body.alertar, req.body.autorizar,idUser];
+
+
+      
 
       connection.query("SELECT * FROM insumos WHERE id_insumos_categorias = ? AND numero = ?", [req.body.categoria, req.body.numero], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al chequear duplicidad de insumos", err });
