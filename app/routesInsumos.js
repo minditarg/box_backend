@@ -88,7 +88,12 @@ app.get('/list-insumos-stock-insuficiente',checkConnection,(req,res,next) => { g
 
   app.post('/delete-insumos', bodyJson,checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[22],connection)}, function (req, res) {
 
-      connection.query("UPDATE insumos set activo = 0 where id = ?", [req.body.id], function (err, result) {
+    var idUser = null;
+		if(req.user)
+      idUser = req.user.id;
+
+    //connection.query("UPDATE insumos set activo = 0 where id = ?", [req.body.id], function (err, result) {
+      connection.query("CALL insumos_eliminar(?)", [[req.body.id, idUser]], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
       })
