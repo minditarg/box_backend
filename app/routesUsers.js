@@ -17,9 +17,7 @@ module.exports = function (app, connection, passport) {
 		var userId = req.user.id || null;
 
 		connection.query("CALL get_user(?)", [userId], function (err, result) {
-			if (err) {
-				return res.json({ success: 0, error_msj: err });
-			}
+			if (err) return res.status(500).send(err);
 
 
 			res.json({ success: 1, result });
@@ -27,35 +25,24 @@ module.exports = function (app, connection, passport) {
 		})
 
 
-
-
 	});
 
 	app.get('/list-users_type', isLoggedIn, function (req, res) {
 
-
 		connection.query("SELECT * FROM users_type WHERE activo = 1", function (err, result) {
-			if (err) {
-				return res.json({ success: 0, error_msj: err });
-			}
-			else {
+			if (err) return res.status(500).send(err);
 
 				res.json({ success: 1, result });
-			}
-
+			
 		})
-
-
-
-
 
 	});
 
 
 
 	app.post('/login-json', bodyJson, function (req, res) {
-		req.body.username = req.body.username.trim() || null;
-		req.body.password = req.body.password.trim() || null;
+		req.body.username = req.body.username || null;
+		req.body.password = req.body.password || null;
 
 		passport.authenticate('local-login', function (err, user, info) {
 			if (err) { return res.json({ success: 0, error_msj: "no se pudo autenticar" }, err) }
@@ -75,9 +62,9 @@ module.exports = function (app, connection, passport) {
 
 	
 	app.post('/signup-json', bodyJson, function (req, res) {
-		req.body.username = req.body.username.trim() || null;
-		req.body.password = req.body.password.trim() || null;
-		req.body.nombre = req.body.nombre.trim() || null;
+		req.body.username = req.body.username || null;
+		req.body.password = req.body.password || null;
+		req.body.nombre = req.body.nombre || null;
 		req.body.id_users_type = parseInt(req.body.id_users_type) || null;
 
 		passport.authenticate('local-signup', function (err, user, info) {
@@ -96,7 +83,7 @@ module.exports = function (app, connection, passport) {
 
 		var idUser = req.params.idUser;
 		connection.query("SELECT * FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id WHERE u.id = ?", [idUser], function (err, result) {
-			if (err) return res.json({ success: 0, error_msj: err });
+			if (err) return res.status(500).send(err);
 			res.json({ success: 1, result });
 		});
 
@@ -104,13 +91,10 @@ module.exports = function (app, connection, passport) {
 	});
 
 	app.get('/list-users', isLoggedIn, function (req, res) {
-		var userMeId = 0;
-		if (req.user) {
-			userMeId = req.user.id;
-		}
+		userMeId = (req.user && req.user.id) || null;
 		connection.query("SELECT ut.descripcion as descripcion_users_type,ut.id as id_user_type,u.id,u.username,u.nombre FROM users u LEFT JOIN (SELECT * FROM users_type WHERE activo = 1) as ut ON u.id_users_type = ut.id WHERE u.id != ? AND u.activo = 1 ", [userMeId], function (err, result) {
 
-			if (err) return res.json({ success: 0, error_msj: err });
+			if (err) return res.status(500).send(err);
 			res.json({ success: 1, result });
 		});
 
@@ -120,13 +104,10 @@ module.exports = function (app, connection, passport) {
 
 
 	app.get('/list-tipos-usuarios', isLoggedIn, function (req, res) {
-		var userMeId = 0;
-		if (req.user) {
-			userMeId = req.user.id;
-		}
+		
 		connection.query("CALL users_listar_tipos_usuarios()", function (err, result) {
 
-			if (err) return res.status(500).send("error de consulta SQL");
+			if (err) return res.status(500).send(err);
 			res.json({ success: 1, result: result[0] });
 		});
 
@@ -136,10 +117,10 @@ module.exports = function (app, connection, passport) {
 
 
 	app.get('/list-tipo-usuario/:idTipoUsuario', isLoggedIn, function (req, res) {
-		let idTipoUsuario = req.params.idTipoUsuario;
+		let idTipoUsuario = parseInt(req.params.idTipoUsuario) || null;
 		connection.query("CALL users_detalle_tipo_usuario(?)", [idTipoUsuario], function (err, result) {
 
-			if (err) return res.status(500).send("error de consulta SQL");
+			if (err) return res.status(500).send(err);
 			res.json({ success: 1, tipoUsuario: result[0], detalleAccesos: result[1], accesos: result[2] });
 		});
 
@@ -148,10 +129,9 @@ module.exports = function (app, connection, passport) {
 	});
 
 	app.get('/list-accesos', isLoggedIn, function (req, res) {
-		let idTipoUsuario = req.params.idTipoUsuario;
 		connection.query("SELECT * FROM accesos", function (err, result) {
 
-			if (err) return res.status(500).send("error de consulta SQL");
+			if (err) return res.status(500).send(err);
 			res.json({ success: 1, result });
 		});
 
@@ -161,7 +141,7 @@ module.exports = function (app, connection, passport) {
 
 
 	app.post('/insert-tipo-usuario', (req, res, next) => { general.checkPermission(req, res, next, [12],connection) }, bodyJson, function (req, res) {
-		let descripcion = req.body.descripcion.trim() || null;
+		let descripcion = req.body.descripcion || null;
 		let accesos = (Array.isArray(req.body.accesos) && req.body.accesos) ||  [];
 
 
@@ -172,19 +152,21 @@ module.exports = function (app, connection, passport) {
 		throw err; }
 	*/
 		connection.beginTransaction(function (err) {
+			
+
 			if (err) {
 				// connection.release();
-				res.json({ success: 0, err });
+				res.status(500).send(err);
 			}
 			var datenow = new Date();
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
 			//var arrayIns = [req.body.codigo, req.body.descripcion, 1];
 
-			connection.query("CALL users_insertar_tipos_usuarios(?)", [descripcion], function (error, result) {
-				if (error) {
+			connection.query("CALL users_insertar_tipos_usuarios(?)", [descripcion], function (err, result) {
+				if (err) {
 					return connection.rollback(function () {
 						// connection.release();
-						res.json({ success: 0, err });
+						res.status(500).send(err);
 					});
 				}
 				let resultado = JSON.parse(JSON.stringify(result[0]))
@@ -203,12 +185,12 @@ module.exports = function (app, connection, passport) {
 
 
 
-				connection.query(sql, [values], function (error, results) {
+				connection.query(sql, [values], function (err, results) {
 
-					if (error) {
+					if (err) {
 						return connection.rollback(function () {
 							//connection.release();
-							res.json({ success: 0, err });
+							res.status(500).send(err);
 						});
 					}
 
@@ -216,7 +198,7 @@ module.exports = function (app, connection, passport) {
 						if (err) {
 							return connection.rollback(function () {
 								//connection.release();
-								res.json({ success: 0, err });
+								res.status(500).send(err);
 							});
 						} else {
 							//connection.release();
@@ -235,7 +217,7 @@ module.exports = function (app, connection, passport) {
 
 	app.post('/update-tipo-usuario', bodyJson,(req, res, next) => { general.checkPermission(req, res, next, [12],connection) }, function (req, res) {
 		let id = parseInt(req.body.id) || null;
-		let descripcion = req.body.descripcion.trim() || null;
+		let descripcion = req.body.descripcion || null;
 		let accesos = (Array.isArray(req.body.accesos) && req.body.accesos) ||  [];
 		
 		/*
@@ -248,7 +230,7 @@ module.exports = function (app, connection, passport) {
 		connection.beginTransaction(function (err) {
 			if (err) {
 				//connection.release();
-				res.json({ success: 0, err });
+				res.status(500).send(err);
 			}
 			var datenow = new Date();
 			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
@@ -256,19 +238,19 @@ module.exports = function (app, connection, passport) {
 			var updObj = {
 				descripcion: descripcion
 			}
-			connection.query("UPDATE users_type SET ? WHERE id = ?", [updObj, id], function (error, result) {
-				if (error) {
+			connection.query("UPDATE users_type SET ? WHERE id = ?", [updObj, id], function (err, result) {
+				if (err) {
 					return connection.rollback(function () {
 						//connection.release();
-						res.json({ success: 0, err });
+						res.status(500).send(err);
 					});
 				}
 
-				connection.query("DELETE FROM users_type_accesos WHERE id_user_type = ?", id, function (error, result) {
-					if (error) {
+				connection.query("DELETE FROM users_type_accesos WHERE id_user_type = ?", id, function (err, result) {
+					if (err) {
 						return connection.rollback(function () {
 							//connection.release();
-							res.json({ success: 0, err });
+							res.status(500).send(err);
 						});
 					}
 
@@ -285,12 +267,12 @@ module.exports = function (app, connection, passport) {
 
 
 
-					connection.query(sql, [values], function (error, results) {
+					connection.query(sql, [values], function (err, results) {
 
-						if (error) {
+						if (err) {
 							return connection.rollback(function () {
 								//connection.release();
-								res.json({ success: 0, err });
+								res.status(500).send(err);
 							});
 						}
 
@@ -298,7 +280,7 @@ module.exports = function (app, connection, passport) {
 							if (err) {
 								return connection.rollback(function () {
 									//connection.release();
-									res.json({ success: 0, err });
+									res.status(500).send(err);
 								});
 							} else {
 								//connection.release();
@@ -316,18 +298,19 @@ module.exports = function (app, connection, passport) {
 
 	app.post('/update-user', bodyJson,(req, res, next) => { general.checkPermission(req, res, next, [11],connection) }, function (req, res) {
 		let id = parseInt(req.body.id) || null;
-		let nombre = req.body.nombre.trim() || null;
+		let nombre = req.body.nombre || null;
 		let id_users_type = parseInt(req.body.id_users_type) || null; 
 
 		if (id) {
 			var objectoUpdate = { nombre: nombre, id_users_type: id_users_type };
 			connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id], function (err, result) {
-				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
+				if (err) return res.status(500).send(err);
 				res.json({ success: 1, result });
 			});
 
 		} else {
-			res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
+			
+			return res.status(500).send("el id de la tabla users no esta ingresado");
 
 		}
 
@@ -336,17 +319,17 @@ module.exports = function (app, connection, passport) {
 
 	app.post('/update-pass', (req, res, next) => { general.checkPermission(req, res, next, [11],connection) }, bodyJson, function (req, res) {
 		let id = parseInt(req.body.id) || null;
-		let newpass = req.body.newpass.trim() || null;
+		let newpass = req.body.newpass || null;
 
 		if (id) {
 			var objectoUpdate = { password: bcrypt.hashSync(newpass, null, null) };
 			connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id], function (err, result) {
-				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
+				if (err) return res.status(500).send(err);
 				res.json({ success: 1, result });
 			});
 
 		} else {
-			res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
+			return res.status(500).send("el id de la tabla users no esta ingresado");
 
 		}
 
@@ -358,7 +341,7 @@ module.exports = function (app, connection, passport) {
 		if (id) {
 			var objectoUpdate = { activo: 0 };
 			connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id], function (err, result) {
-				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
+				if (err) return res.status(500).send(err);
 				res.json({ success: 1, result });
 			});
 
@@ -377,7 +360,7 @@ module.exports = function (app, connection, passport) {
 			
 			var objectoUpdate = { activo: 0 };
 			connection.query("UPDATE users_type SET ? where id = ?", [objectoUpdate, id], function (err, result) {
-				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
+				if (err) return res.status(500).send(err);
 				res.json({ success: 1, result });
 			});
 
