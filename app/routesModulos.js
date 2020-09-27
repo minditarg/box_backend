@@ -616,7 +616,8 @@ module.exports = function (app, connection, passport) {
 					//console.log(err.sqlMessage);
 					return connection.rollback(function () {
 					//	connection.release();
-						res.json({ success: 5, err });
+					//	res.json({ success: 5, err });
+					res.status(500).send(err);
 					});
 				}
 
