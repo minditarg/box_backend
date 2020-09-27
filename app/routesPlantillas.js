@@ -14,23 +14,25 @@ module.exports = function (app, connection, passport) {
 
 
   app.post('/insert-plantilla', bodyJson, checkConnection, function (req, res) {
+    /*
     connection.getConnection(function(err, connection) {
       if (err) {
         connection.release();
         throw err; }
-
+        */
     connection.beginTransaction(function (err) {
       if (err) {
-        connection.release();
-        throw err; }
+        //connection.release();
+        res.json({ success: 0, err });
+      }
       var datenow = new Date();
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
       var arrayIns = [req.body.codigo, req.body.descripcion, 1];
       connection.query("INSERT INTO plantillas (codigo, descripcion, activo) VALUES (?,?,?)", arrayIns, function (error, result) {
         if (error) {
           return connection.rollback(function () {
-            connection.release();
-            throw error;
+            //connection.release();
+            res.json({ success: 0, err });
           });
         }
 
@@ -45,44 +47,47 @@ module.exports = function (app, connection, passport) {
 
           if (error) {
             return connection.rollback(function () {
-              connection.release();
-              throw error;
+              //connection.release();
+              res.json({ success: 0, err });
             });
           }
 
           connection.commit(function (err) {
             if (err) {
               return connection.rollback(function () {
-                connection.release();
-                throw err;
+                //connection.release();
+                res.json({ success: 0, err });
               });
             } else {
 
-            res.json({ success: 1, results });
-              connection.release();
-          }
+              res.json({ success: 1, results });
+              //connection.release();
+            }
           });
         });
       });
 
-    });
+      //});
 
-  })
+    })
 
   });
 
 
 
   app.post('/update-plantilla', bodyJson, checkConnection, function (req, res) {
-
-    connection.getConnection(function(err, connection) {
+    /*
+    connection.getConnection(function (err, connection) {
       if (err) {
         connection.release();
-        throw err; }
+        throw err;
+      }
+      */
     connection.beginTransaction(function (err) {
       if (err) {
-        connection.release();
-        throw err; }
+        //connection.release();
+        res.json({ success: 0, err });
+      }
       var datenow = new Date();
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
       //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
@@ -93,16 +98,16 @@ module.exports = function (app, connection, passport) {
       connection.query("UPDATE plantillas SET ? WHERE id = ?", [updObj, req.body.id], function (error, result) {
         if (error) {
           return connection.rollback(function () {
-            connection.release();
-            throw error;
+            //connection.release();
+            res.json({ success: 0, err });
           });
         }
 
         connection.query("DELETE FROM plantillas_insumos WHERE id_plantilla = ?", req.body.id, function (error, result) {
           if (error) {
             return connection.rollback(function () {
-              connection.release();
-              throw error;
+              //connection.release();
+              res.json({ success: 0, err });
             });
           }
 
@@ -115,27 +120,27 @@ module.exports = function (app, connection, passport) {
 
             if (error) {
               return connection.rollback(function () {
-                connection.release();
-                throw error;
+                //connection.release();
+                res.json({ success: 0, err });
               });
             }
 
             connection.commit(function (err) {
               if (err) {
                 return connection.rollback(function () {
-                  connection.release();
-                  throw err;
+                  //connection.release();
+                  res.json({ success: 0, err });
                 });
               } else {
-                connection.release();
-              res.json({ success: 1, results });
-            }
+                //connection.release();
+                res.json({ success: 1, results });
+              }
             });
           });
         });
       });
-    });
-  })
+      //});
+    })
   });
 
 
@@ -192,18 +197,16 @@ module.exports = function (app, connection, passport) {
     if (array.length > 0) {
       let sql;
       let insertar;
-      if(array[index].tipoQuery == "INSERT")
-      {
-      sql = "INSERT INTO plantillas_insumos (id_plantilla, id_insumo, cantidad, activo) VALUES (?)";
-      insertar = [id, array[index].id, array[index].cantidad, 1];
+      if (array[index].tipoQuery == "INSERT") {
+        sql = "INSERT INTO plantillas_insumos (id_plantilla, id_insumo, cantidad, activo) VALUES (?)";
+        insertar = [id, array[index].id, array[index].cantidad, 1];
       }
-        if(array[index].tipoQuery == "UPDATE")
-      {
-      sql = "UPDATE plantillas_insumos set ? where id = ? ";
-      insertar = {id_plantilla:id, id_insumo:array[index].id, cantidad:array[index].cantidad,activo: 1};
-      console.log(array[index]);
+      if (array[index].tipoQuery == "UPDATE") {
+        sql = "UPDATE plantillas_insumos set ? where id = ? ";
+        insertar = { id_plantilla: id, id_insumo: array[index].id, cantidad: array[index].cantidad, activo: 1 };
+        console.log(array[index]);
       }
-      connection.query(sql, [insertar,array[index].id_pi], function (error, results) {
+      connection.query(sql, [insertar, array[index].id_pi], function (error, results) {
 
         if (error) {
           return connection.rollback(function () {

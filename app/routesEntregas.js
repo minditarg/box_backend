@@ -57,17 +57,17 @@ module.exports = function (app, connection, passport) {
 
 
   app.post('/insert-entregas', bodyJson, checkConnection, function (req, res) {
-
+    /*
     connection.getConnection(function (err, connection) {
       if (err) {
         connection.release();
         res.json({ success: 0, err });
       }
-
+      */
 
       connection.beginTransaction(function (err) {
         if (err) {
-          connection.release();
+        //  connection.release();
           res.json({ success: 0, err });
         }
         var datenow = new Date();
@@ -79,7 +79,7 @@ module.exports = function (app, connection, passport) {
         connection.query("CALL entregas_crear(?)", [arrayIns], function (err, result) {
           if (err) {
             return connection.rollback(function () {
-              connection.release();
+            //  connection.release();
               res.json({ success: 0, err });
             });
           }
@@ -101,7 +101,7 @@ module.exports = function (app, connection, passport) {
             connection.commit(function (err) {
               if (err) {
                 return connection.rollback(function () {
-                  connection.release();
+                //  connection.release();
                   res.json({ success: 0, err });
                 });
               }
@@ -111,7 +111,7 @@ module.exports = function (app, connection, passport) {
           });
         });
 
-      });
+      //});
     })
 
   });
@@ -126,7 +126,7 @@ module.exports = function (app, connection, passport) {
 
         if (err) {
           return connection.rollback(function () {
-            connection.release();
+          //  connection.release();
             res.json({ success: 0, err });
           });
         }

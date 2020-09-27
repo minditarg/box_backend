@@ -45,60 +45,61 @@ module.exports = function (app, connection, passport) {
 
 
   app.post('/insert-ingresos', bodyJson, checkConnection, function (req, res) {
-
+    /*
     connection.getConnection(function (err, connection) {
       if (err) {
         connection.release();
         res.json({ success: 5, err });
       }
+      */
 
 
-      connection.beginTransaction(function (err) {
+    connection.beginTransaction(function (err) {
+      if (err) {
+        // connection.release();
+        res.json({ success: 5, err });
+      }
+      var datenow = new Date();
+      var userId = null;
+      if (req.user) {
+        userId = req.user.id;
+      }
+      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+      var arrayIns = [userId, req.body.referencia, req.body.proveedor, datenow, 1, req.body.fechaReferencia];
+      connection.query("INSERT INTO ingresos (id_user,referencia,proveedor,fecha,activo,fecha_referencia) VALUES (?,?,?,?,?,?)", arrayIns, function (error, result) {
         if (err) {
-          connection.release();
-          res.json({ success: 5, err });
-        }
-        var datenow = new Date();
-        var userId = null;
-        if (req.user) {
-          userId = req.user.id;
-        }
-        //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-        var arrayIns = [userId, req.body.referencia, req.body.proveedor, datenow, 1, req.body.fechaReferencia];
-        connection.query("INSERT INTO ingresos (id_user,referencia,proveedor,fecha,activo,fecha_referencia) VALUES (?,?,?,?,?,?)", arrayIns, function (error, result) {
-          if (err) {
-            return connection.rollback(function () {
-              connection.release();
-              res.json({ success: 5, err });
-            });
-          }
-
-          var insertedIngreso = result.insertId;
-
-          var values = [];
-          req.body.detalle.forEach(element => {
-            values.push([insertedIngreso,element.id, element.cantidad,userId]);
+          return connection.rollback(function () {
+            // connection.release();
+            res.json({ success: 5, err });
           });
+        }
 
-        recorrerArrayAgregar(values,0,connection,res,function(){
+        var insertedIngreso = result.insertId;
 
-
-
-
-            connection.commit(function (err) {
-              if (err) {
-                return connection.rollback(function () {
-                  connection.release();
-                  res.json({ success: 5, error });
-                });
-              }
-
-              res.json({ success: 1 });
-            });
-          });
+        var values = [];
+        req.body.detalle.forEach(element => {
+          values.push([insertedIngreso, element.id, element.cantidad, userId]);
         });
 
+        recorrerArrayAgregar(values, 0, connection, res, function () {
+
+
+
+
+          connection.commit(function (err) {
+            if (err) {
+              return connection.rollback(function () {
+                // connection.release();
+                res.json({ success: 5, error });
+              });
+            }
+
+            res.json({ success: 1 });
+          });
+        });
       });
+
+      // });
     })
 
   });
@@ -113,7 +114,7 @@ module.exports = function (app, connection, passport) {
 
         if (err) {
           return connection.rollback(function () {
-            connection.release();
+          //  connection.release();
             res.json({ success: 5, err });
           });
         }

@@ -14,23 +14,25 @@ module.exports = function (app, connection, passport) {
 
 
   app.post('/insert-pedido', bodyJson, checkConnection, function (req, res) {
+    /*
     connection.getConnection(function(err, connection) {
       if (err) {
         connection.release();
         throw err; }
-
+    */
     connection.beginTransaction(function (err) {
       if (err) {
-        connection.release();
-        throw err; }
+        //  connection.release();
+        res.json({ success: 0, err });
+      }
       var datenow = new Date();
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
       var arrayIns = [req.body.referencia, 1];
       connection.query("INSERT INTO pedidos (referencia, activo) VALUES (?,1)", arrayIns, function (error, result) {
         if (error) {
           return connection.rollback(function () {
-            connection.release();
-            throw error;
+            //  connection.release();
+            res.json({ success: 0, err });
           });
         }
 
@@ -45,29 +47,29 @@ module.exports = function (app, connection, passport) {
 
           if (error) {
             return connection.rollback(function () {
-              connection.release();
-              throw error;
+              //  connection.release();
+              res.json({ success: 0, err });
             });
           }
 
           connection.commit(function (err) {
             if (err) {
               return connection.rollback(function () {
-                connection.release();
-                throw err;
+                //  connection.release();
+                res.json({ success: 0, err });
               });
             } else {
 
-            res.json({ success: 1, results });
-              connection.release();
-          }
+              res.json({ success: 1, results });
+              //  connection.release();
+            }
           });
         });
       });
 
-    });
+      //});
 
-  })
+    })
 
   });
 
@@ -80,38 +82,40 @@ module.exports = function (app, connection, passport) {
     })
 
   });
-  
+
 
   app.post('/update-pedido', bodyJson, checkConnection, function (req, res) {
-
+    /*
     connection.getConnection(function(err, connection) {
       if (err) {
         connection.release();
         throw err; }
+     */
     connection.beginTransaction(function (err) {
       if (err) {
-        connection.release();
-        throw err; }
+        // connection.release();
+        res.json({ success: 0, err });
+      }
       var datenow = new Date();
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
       //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
       var updObj = {
-       // codigo: req.body.codigo,
+        // codigo: req.body.codigo,
         referencia: req.body.referencia
       }
       connection.query("UPDATE pedidos SET ? WHERE id = ?", [updObj, req.body.id], function (error, result) {
         if (error) {
           return connection.rollback(function () {
-            connection.release();
-            throw error;
+            //connection.release();
+            res.json({ success: 0, err });
           });
         }
 
         connection.query("DELETE FROM pedidos_insumos WHERE id_pedido = ?", req.body.id, function (error, result) {
           if (error) {
             return connection.rollback(function () {
-              connection.release();
-              throw error;
+              //connection.release();
+              res.json({ success: 0, err });
             });
           }
 
@@ -124,27 +128,27 @@ module.exports = function (app, connection, passport) {
 
             if (error) {
               return connection.rollback(function () {
-                connection.release();
-                throw error;
+                //connection.release();
+                res.json({ success: 0, err });
               });
             }
 
             connection.commit(function (err) {
               if (err) {
                 return connection.rollback(function () {
-                  connection.release();
-                  throw err;
+                  //connection.release();
+                  res.json({ success: 0, err });
                 });
               } else {
-                connection.release();
-              res.json({ success: 1, results });
-            }
+                //connection.release();
+                res.json({ success: 1, results });
+              }
             });
           });
         });
+        //});
       });
-    });
-  })
+    })
   });
 
 
@@ -156,7 +160,7 @@ module.exports = function (app, connection, passport) {
       //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
       //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
       var updObj = {
-       // codigo: req.body.codigo,
+        // codigo: req.body.codigo,
         referencia: req.body.referencia
       }
       connection.query("UPDATE pedidos SET ? WHERE id = ?", [updObj, req.body.id], function (error, result) {
@@ -201,18 +205,16 @@ module.exports = function (app, connection, passport) {
     if (array.length > 0) {
       let sql;
       let insertar;
-      if(array[index].tipoQuery == "INSERT")
-      {
-      sql = "INSERT INTO pedidos_insumos (id_pedido, id_insumo, cantidad, activo) VALUES (?)";
-      insertar = [id, array[index].id, array[index].cantidad, 1];
+      if (array[index].tipoQuery == "INSERT") {
+        sql = "INSERT INTO pedidos_insumos (id_pedido, id_insumo, cantidad, activo) VALUES (?)";
+        insertar = [id, array[index].id, array[index].cantidad, 1];
       }
-        if(array[index].tipoQuery == "UPDATE")
-      {
-      sql = "UPDATE pedidos_insumos set ? where id = ? ";
-      insertar = {id_pedido:id, id_insumo:array[index].id, cantidad:array[index].cantidad,activo: 1};
-      console.log(array[index]);
+      if (array[index].tipoQuery == "UPDATE") {
+        sql = "UPDATE pedidos_insumos set ? where id = ? ";
+        insertar = { id_pedido: id, id_insumo: array[index].id, cantidad: array[index].cantidad, activo: 1 };
+        console.log(array[index]);
       }
-      connection.query(sql, [insertar,array[index].id_pi], function (error, results) {
+      connection.query(sql, [insertar, array[index].id_pi], function (error, results) {
 
         if (error) {
           return connection.rollback(function () {
@@ -235,59 +237,59 @@ module.exports = function (app, connection, passport) {
   }
 
 
-  
-app.post('/cancelar-pedido', bodyJson,checkConnection, function (req, res) {
-	let idUser = null;
-	if(req.user)
-		idUser = req.user.id;
-try {
-  connection.query("UPDATE pedidos SET id_pedidos_estados = 4 WHERE id = ?", [req.body.id], function (err, result) {
-	if (err) return res.json({ success: 0, error_msj: err });
-	res.json({ success: 1, result });
-  })
-} catch (e) {
-  return res.status(500).send({
-	error: true,
-	message: e.message
-  })
-}
-});
 
-
-  app.post('/pausar-pedido', bodyJson,checkConnection, function (req, res) {
-    console.log("PAUSAR PEDIDO");
+  app.post('/cancelar-pedido', bodyJson, checkConnection, function (req, res) {
     let idUser = null;
-    if(req.user)
+    if (req.user)
       idUser = req.user.id;
-  try {
-    connection.query("UPDATE pedidos SET id_pedidos_estados = 3 WHERE id = ?", [req.body.id], function (err, result) {
-    if (err) return res.json({ success: 0, error_msj: err });
-    res.json({ success: 1, result });
-    })
-  } catch (e) {
-    return res.status(500).send({
-    error: true,
-    message: e.message
-    })
-  }
+    try {
+      connection.query("UPDATE pedidos SET id_pedidos_estados = 4 WHERE id = ?", [req.body.id], function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
   });
 
 
-  app.post('/disenoasolicitado-pedido', bodyJson,checkConnection, function (req, res) {
+  app.post('/pausar-pedido', bodyJson, checkConnection, function (req, res) {
+    console.log("PAUSAR PEDIDO");
     let idUser = null;
-    if(req.user)
+    if (req.user)
       idUser = req.user.id;
-  try {
-    connection.query("call pedido_diseno_a_solicitado(?) ", [req.body.id], function (err, result) {
-    if (err) return res.json({ success: 0, error_msj: err });
-    res.json({ success: 1, result });
-    })
-  } catch (e) {
-    return res.status(500).send({
-    error: true,
-    message: e.message
-    })
-  }
+    try {
+      connection.query("UPDATE pedidos SET id_pedidos_estados = 3 WHERE id = ?", [req.body.id], function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
+  });
+
+
+  app.post('/disenoasolicitado-pedido', bodyJson, checkConnection, function (req, res) {
+    let idUser = null;
+    if (req.user)
+      idUser = req.user.id;
+    try {
+      connection.query("call pedido_diseno_a_solicitado(?) ", [req.body.id], function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
   });
 
 
@@ -325,7 +327,7 @@ try {
 
   });
 
-  app.get('/list-pedidos-cancelados',checkConnection, function (req, res) {
+  app.get('/list-pedidos-cancelados', checkConnection, function (req, res) {
 
     try {
       connection.query("SELECT * FROM pedidos WHERE activo = 1 AND id_pedidos_estados = 4 ORDER BY id DESC", function (err, result) {
@@ -342,7 +344,7 @@ try {
 
   });
 
-  app.get('/list-pedidos-pausados',checkConnection, function (req, res) {
+  app.get('/list-pedidos-pausados', checkConnection, function (req, res) {
 
     try {
       connection.query("SELECT * FROM pedidos WHERE activo = 1 AND id_pedidos_estados = 3 ORDER BY id DESC", function (err, result) {
@@ -359,7 +361,7 @@ try {
 
   });
 
-  app.get('/list-pedidos-finalizados',checkConnection, function (req, res) {
+  app.get('/list-pedidos-finalizados', checkConnection, function (req, res) {
 
     try {
       connection.query("SELECT * FROM pedidos WHERE activo = 1 AND id_pedidos_estados = 5 ORDER BY id DESC", function (err, result) {
@@ -376,7 +378,7 @@ try {
 
   });
 
-  app.get('/list-pedidos-diseno',checkConnection, function (req, res) {
+  app.get('/list-pedidos-diseno', checkConnection, function (req, res) {
 
     try {
       connection.query("SELECT p.*, sum(pi.cantidad * i.costo) as precio FROM pedidos p inner join pedidos_insumos pi on pi.id_pedido = p.id inner join insumos i on i.id = pi.id_insumo WHERE p.activo = 1 AND p.id_pedidos_estados = 1 group by pi.id_pedido ORDER BY p.id DESC", function (err, result) {
@@ -409,23 +411,23 @@ try {
     })
 
   });
-  
 
-  app.post('/finalizar-pedido', bodyJson,checkConnection, function (req, res) {
+
+  app.post('/finalizar-pedido', bodyJson, checkConnection, function (req, res) {
     let idUser = null;
-    if(req.user)
+    if (req.user)
       idUser = req.user.id;
-  try {
-    connection.query("UPDATE pedidos SET id_pedidos_estados = 5 WHERE id = ?", [req.body.id], function (err, result) {
-    if (err) return res.json({ success: 0, error_msj: err });
-    res.json({ success: 1, result });
-    })
-  } catch (e) {
-    return res.status(500).send({
-    error: true,
-    message: e.message
-    })
-  }
+    try {
+      connection.query("UPDATE pedidos SET id_pedidos_estados = 5 WHERE id = ?", [req.body.id], function (err, result) {
+        if (err) return res.json({ success: 0, error_msj: err });
+        res.json({ success: 1, result });
+      })
+    } catch (e) {
+      return res.status(500).send({
+        error: true,
+        message: e.message
+      })
+    }
   });
 
   app.post('/delete-pedido', bodyJson, checkConnection, function (req, res) {

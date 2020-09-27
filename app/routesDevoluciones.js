@@ -25,9 +25,9 @@ module.exports = function (app, connection, passport) {
 
   app.get('/list-devoluciones-insumos-modulo/:idModulo', checkConnection, function (req, res) {
     let idModulo = req.params.idModulo;
-    connection.query("CALL devoluciones_listar_insumos_modulo(?) ",[idModulo], function (err, result) {
+    connection.query("CALL devoluciones_listar_insumos_modulo(?) ", [idModulo], function (err, result) {
       if (err) return res.json({ success: 0, error_msj: err });
-      res.json({ success: 1, result:result[0] });
+      res.json({ success: 1, result: result[0] });
 
     })
 
@@ -57,62 +57,63 @@ module.exports = function (app, connection, passport) {
 
   app.post('/insert-devoluciones', bodyJson, checkConnection, function (req, res) {
 
-
+    /*
     connection.getConnection(function (err, connection) {
       if (err) {
         connection.release();
         res.json({ success: 0, err });
       }
+      */
 
-      connection.beginTransaction(function (err) {
-        if (err) {
-          connection.release();
-          res.json({ success: 0, err });
+    connection.beginTransaction(function (err) {
+      if (err) {
+        //  connection.release();
+        res.json({ success: 0, err });
+      }
+
+      var userId = null;
+      if (req.user)
+        userId = req.user.id;
+      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+      var arrayIns = [req.body.id_modulo, req.body.motivo, req.body.referencia, userId];
+
+      connection.query("CALL devoluciones_crear(?)", [arrayIns], function (error, result) {
+        if (error) {
+          return connection.rollback(function () {
+            // connection.release();
+            res.json({ success: 0, err });
+          });
         }
 
-        var userId = null;
-        if (req.user)
-          userId = req.user.id;
-        //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-        var arrayIns = [req.body.id_modulo, req.body.motivo, req.body.referencia, userId];
-
-        connection.query("CALL devoluciones_crear(?)", [arrayIns], function (error, result) {
-          if (error) {
-            return connection.rollback(function () {
-              connection.release();
-              res.json({ success: 0, err });
-            });
-          }
-
-          var insertedDevolucion = result[0][0].id_devolucion;
-          var insertedModuloMovimiento = result[0][0].id_modulo_movimiento;
+        var insertedDevolucion = result[0][0].id_devolucion;
+        var insertedModuloMovimiento = result[0][0].id_modulo_movimiento;
 
 
 
-          var values = [];
-          req.body.detalle.forEach(element => {
-            values.push([insertedDevolucion,req.body.id_modulo,element.id_modulo_insumo,insertedModuloMovimiento, element.cantidad, userId]);
-          });
-
-          recorrerArrayAgregar(values, 0, connection, res, function () {
-
-
-
-
-            connection.commit(function (err) {
-              if (err) {
-                return connection.rollback(function () {
-                  connection.release();
-                  res.json({ success: 0, err });
-                });
-              }
-
-              res.json({ success: 1 });
-            });
-          });
+        var values = [];
+        req.body.detalle.forEach(element => {
+          values.push([insertedDevolucion, req.body.id_modulo, element.id_modulo_insumo, insertedModuloMovimiento, element.cantidad, userId]);
         });
 
+        recorrerArrayAgregar(values, 0, connection, res, function () {
+
+
+
+
+          connection.commit(function (err) {
+            if (err) {
+              return connection.rollback(function () {
+                // connection.release();
+                res.json({ success: 0, err });
+              });
+            }
+
+            res.json({ success: 1 });
+          });
+        });
       });
+
+      //});
     })
   });
 
@@ -126,7 +127,7 @@ module.exports = function (app, connection, passport) {
 
         if (err) {
           return connection.rollback(function () {
-            connection.release();
+           // connection.release();
             res.json({ success: 0, err });
           });
         }

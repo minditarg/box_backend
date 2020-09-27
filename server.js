@@ -5,32 +5,34 @@
 var compression = require('compression');
 var express  = require('express');
 var session  = require('express-session');
+var MySQLStore = require('express-mysql-session')(session);
 var cookieParser = require('cookie-parser');
 var path = require('path');
 var morgan = require('morgan');
 var app      = express();
 var server = require('http').createServer(app);
-var io = require('socket.io')(server);
-io.on('connection', client => {
-  console.log("cliente conectado");
-  client.on('disconnect', () => { console.log("cliente desconectado") });
-});
+//var io = require('socket.io')(server);
+//io.on('connection', client => {
+//  console.log("cliente conectado");
+//  client.on('disconnect', () => { console.log("cliente desconectado") });
+//});
 var port     = process.env.PORT || 3600 ;
 
 var passport = require('passport');
 var flash    = require('connect-flash');
 
-var mysql = require('mysql');
+var mysql = require('mysql2');
 var dbconfig = require('./config/database');
 //var connection = mysql.createConnection(dbconfig.connection);
-var connection = mysql.createPool({
-  acquireTimeout:2000,
-  connectionLimit: 10,
+var connection = mysql.createConnection({
   host: '50.63.166.215',
   user: 'matias',
   password: 'Holaardu',
-  database: 'boxrental_deploy'
+  database: 'boxrental_deploy',
+  connectTimeout:5000
 })
+
+var sessionStore = new MySQLStore({}, connection.promise());
 
 var httpProxy = require('http-proxy');
 var apiProxy = httpProxy.createProxyServer();
@@ -57,7 +59,8 @@ app.set('trust proxy', 1);
 app.use(session({
 	secret: 'vidyapathaisalwaysrunning',
 	resave: false,
-	saveUninitialized: true
+  saveUninitialized: true,
+  store: sessionStore
  } )); // session secret
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
@@ -73,8 +76,8 @@ app.use(function(req,res,next){
 //require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
 
 require('./app/routesIngresos.js')(app,connection, passport);
-require('./app/routesUsers.js')(app,connection, passport,io);
-require('./app/routesInsumos.js')(app,connection, passport,io);
+require('./app/routesUsers.js')(app,connection, passport);
+require('./app/routesInsumos.js')(app,connection, passport);
 require('./app/routesStock.js')(app,connection, passport);
 require('./app/routesModulos.js')(app,connection, passport);
 require('./app/routesEntregas.js')(app,connection, passport);
@@ -104,8 +107,53 @@ app.get('/*', function (req, res) {
 
 // launch ======================================================================
 server.listen(port);
-console.log('MindIT en el puerto ' + port);
+server.on('error', onError);
+server.on('listening', onListening);
+//console.log('MindIT en el puerto ' + port);
+/*
 process.on('uncaughtException', (err) => {
     console.error('There was an uncaught error', err)
     process.exit(1) //mandatory (as per the Node docs)
 })
+*/
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  console.log('Listening on ' + bind);
+}
+

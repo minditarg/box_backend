@@ -10,19 +10,19 @@ var bodyJson = bodyParser.json();
 var bcrypt = require('bcrypt-nodejs');
 
 
-module.exports = function (app,connection, passport) {
+module.exports = function (app, connection, passport) {
 
 
-	app.get('/me',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[])}, function (req, res) {
-		var userId = req.user.id;
+	app.get('/me', (req, res, next) => { general.checkPermission(req, res, next, [],connection) }, function (req, res) {
+		var userId = req.user.id || null;
 
-		connection.query("CALL get_user(?)",[userId], function (err, result) {
-				if (err) {
-					return res.json({ success: 0, error_msj: err });
-				}
+		connection.query("CALL get_user(?)", [userId], function (err, result) {
+			if (err) {
+				return res.json({ success: 0, error_msj: err });
+			}
 
 
-					res.json({ success: 1,result });
+			res.json({ success: 1, result });
 
 		})
 
@@ -31,19 +31,19 @@ module.exports = function (app,connection, passport) {
 
 	});
 
-  app.get('/list-users_type', checkConnection,function (req, res) {
+	app.get('/list-users_type', isLoggedIn, function (req, res) {
 
 
-			connection.query("SELECT * FROM users_type WHERE activo = 1", function (err, result) {
-				if (err) {
-					return res.json({ success: 0, error_msj: err });
-				}
-				else {
+		connection.query("SELECT * FROM users_type WHERE activo = 1", function (err, result) {
+			if (err) {
+				return res.json({ success: 0, error_msj: err });
+			}
+			else {
 
-					res.json({ success: 1, result });
-				}
+				res.json({ success: 1, result });
+			}
 
-			})
+		})
 
 
 
@@ -53,275 +53,275 @@ module.exports = function (app,connection, passport) {
 
 
 
-	app.post('/login-json', bodyJson,checkConnection, function (req, res) {
+	app.post('/login-json', bodyJson, function (req, res) {
+		req.body.username = req.body.username.trim() || null;
+		req.body.password = req.body.password.trim() || null;
 
-
-			passport.authenticate('local-login', function (err, user, info) {
-				if (err) { return res.json({ success: 0, error_msj: "no se pudo autenticar" }, err) }
-				if (!user) { return res.json({ success: 0, error_msj: "el usuario o contraseña son incorrectos" }) }
-				req.logIn(user, function (err) {
-					if (err) { return res.json({ success: 0, error_msj: "no se pudo loguear" }, err) }
-					if (req.body.remember) {
-						req.session.cookie.maxAge = 1000 * 60 * 3;
-					} else {
-						req.session.cookie.expires = false;
-					}
-					return res.json({ success: 1, user });
-				});
-			})(req, res);
-
-	});
-
-
-	app.post('/signup-json', bodyJson, checkConnection,function (req, res) {
-
-			passport.authenticate('local-signup', function (err, user, info) {
-				if (err) { return res.json({ success: 0, error_msj: "no se pudo autenticar" }, err) }
-				if (!user) { return res.json({ success: 0, error_msj: "Posible nombre de usuario duplicado" }) }
-
+		passport.authenticate('local-login', function (err, user, info) {
+			if (err) { return res.json({ success: 0, error_msj: "no se pudo autenticar" }, err) }
+			if (!user) { return res.json({ success: 0, error_msj: "el usuario o contraseña son incorrectos" }) }
+			req.logIn(user, function (err) {
+				if (err) { return res.json({ success: 0, error_msj: "no se pudo loguear" }, err) }
+				if (req.body.remember) {
+					req.session.cookie.maxAge = 1000 * 60 * 3;
+				} else {
+					req.session.cookie.expires = false;
+				}
 				return res.json({ success: 1, user });
-
-			})(req, res);
-
-
-	});
-
-
-	app.get('/list-users/:idUser',checkConnection, function (req, res) {
-
-			var idUser = req.params.idUser;
-			connection.query("SELECT * FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id WHERE u.id = ?", [idUser], function (err, result) {
-				if (err) return res.json({ success: 0, error_msj: err });
-				res.json({ success: 1, result });
 			});
+		})(req, res);
+
+	});
+
+	
+	app.post('/signup-json', bodyJson, function (req, res) {
+		req.body.username = req.body.username.trim() || null;
+		req.body.password = req.body.password.trim() || null;
+		req.body.nombre = req.body.nombre.trim() || null;
+		req.body.id_users_type = parseInt(req.body.id_users_type) || null;
+
+		passport.authenticate('local-signup', function (err, user, info) {
+			if (err) { return res.json({ success: 0, error_msj: "no se pudo autenticar" }, err) }
+			if (!user) { return res.json({ success: 0, error_msj: "Posible nombre de usuario duplicado" }) }
+
+			return res.json({ success: 1, user });
+
+		})(req, res);
 
 
 	});
 
-	app.get('/list-users',isLoggedIn, checkConnection,function (req, res) {
+
+	app.get('/list-users/:idUser', function (req, res) {
+
+		var idUser = req.params.idUser;
+		connection.query("SELECT * FROM users u LEFT JOIN users_type as ut ON u.id_users_type = ut.id WHERE u.id = ?", [idUser], function (err, result) {
+			if (err) return res.json({ success: 0, error_msj: err });
+			res.json({ success: 1, result });
+		});
+
+
+	});
+
+	app.get('/list-users', isLoggedIn, function (req, res) {
 		var userMeId = 0;
-			if(req.user){
-					userMeId = req.user.id;
-			}
-			connection.query("SELECT ut.descripcion as descripcion_users_type,ut.id as id_user_type,u.id,u.username,u.nombre FROM users u LEFT JOIN (SELECT * FROM users_type WHERE activo = 1) as ut ON u.id_users_type = ut.id WHERE u.id != ? AND u.activo = 1 ",[userMeId], function (err, result) {
+		if (req.user) {
+			userMeId = req.user.id;
+		}
+		connection.query("SELECT ut.descripcion as descripcion_users_type,ut.id as id_user_type,u.id,u.username,u.nombre FROM users u LEFT JOIN (SELECT * FROM users_type WHERE activo = 1) as ut ON u.id_users_type = ut.id WHERE u.id != ? AND u.activo = 1 ", [userMeId], function (err, result) {
 
-				if (err) return res.json({ success: 0, error_msj: err });
-				res.json({ success: 1, result });
-			});
+			if (err) return res.json({ success: 0, error_msj: err });
+			res.json({ success: 1, result });
+		});
 
 
 
 	});
 
 
-	app.get('/list-tipos-usuarios',isLoggedIn, checkConnection,function (req, res) {
+	app.get('/list-tipos-usuarios', isLoggedIn, function (req, res) {
 		var userMeId = 0;
-			if(req.user){
-					userMeId = req.user.id;
+		if (req.user) {
+			userMeId = req.user.id;
+		}
+		connection.query("CALL users_listar_tipos_usuarios()", function (err, result) {
+
+			if (err) return res.status(500).send("error de consulta SQL");
+			res.json({ success: 1, result: result[0] });
+		});
+
+
+
+	});
+
+
+	app.get('/list-tipo-usuario/:idTipoUsuario', isLoggedIn, function (req, res) {
+		let idTipoUsuario = req.params.idTipoUsuario;
+		connection.query("CALL users_detalle_tipo_usuario(?)", [idTipoUsuario], function (err, result) {
+
+			if (err) return res.status(500).send("error de consulta SQL");
+			res.json({ success: 1, tipoUsuario: result[0], detalleAccesos: result[1], accesos: result[2] });
+		});
+
+
+
+	});
+
+	app.get('/list-accesos', isLoggedIn, function (req, res) {
+		let idTipoUsuario = req.params.idTipoUsuario;
+		connection.query("SELECT * FROM accesos", function (err, result) {
+
+			if (err) return res.status(500).send("error de consulta SQL");
+			res.json({ success: 1, result });
+		});
+
+
+
+	});
+
+
+	app.post('/insert-tipo-usuario', (req, res, next) => { general.checkPermission(req, res, next, [12],connection) }, bodyJson, function (req, res) {
+		let descripcion = req.body.descripcion.trim() || null;
+		let accesos = (Array.isArray(req.body.accesos) && req.body.accesos) ||  [];
+
+
+		/*
+		connection.getConnection(function(err, connection) {
+	  if (err) {
+		connection.release();
+		throw err; }
+	*/
+		connection.beginTransaction(function (err) {
+			if (err) {
+				// connection.release();
+				res.json({ success: 0, err });
 			}
-			connection.query("CALL users_listar_tipos_usuarios()", function (err, result) {
+			var datenow = new Date();
+			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+			//var arrayIns = [req.body.codigo, req.body.descripcion, 1];
 
-				if (err) return res.status(500).send("error de consulta SQL");
-				res.json({ success: 1, result: result[0] });
+			connection.query("CALL users_insertar_tipos_usuarios(?)", [descripcion], function (error, result) {
+				if (error) {
+					return connection.rollback(function () {
+						// connection.release();
+						res.json({ success: 0, err });
+					});
+				}
+				let resultado = JSON.parse(JSON.stringify(result[0]))
+				let insertedId = parseInt(resultado[0].inserted_id);
+
+
+				var sql = "INSERT INTO users_type_accesos (id_user_type,id_acceso) VALUES ?";
+				var values = [];
+				accesos.forEach(element => {
+					if (element.checked)
+						values.push([insertedId, element.id]);
+				});
+
+				if (values.length <= 0)
+					sql = "SELECT @no_data_accesos";
+
+
+
+				connection.query(sql, [values], function (error, results) {
+
+					if (error) {
+						return connection.rollback(function () {
+							//connection.release();
+							res.json({ success: 0, err });
+						});
+					}
+
+					connection.commit(function (err) {
+						if (err) {
+							return connection.rollback(function () {
+								//connection.release();
+								res.json({ success: 0, err });
+							});
+						} else {
+							//connection.release();
+							res.json({ success: 1, results });
+						}
+					});
+				});
+
 			});
+			//});
+		})
 
 
 
 	});
 
+	app.post('/update-tipo-usuario', bodyJson,(req, res, next) => { general.checkPermission(req, res, next, [12],connection) }, function (req, res) {
+		let id = parseInt(req.body.id) || null;
+		let descripcion = req.body.descripcion.trim() || null;
+		let accesos = (Array.isArray(req.body.accesos) && req.body.accesos) ||  [];
+		
+		/*
+		connection.getConnection(function (err, connection) {
+			if (err) {
+				connection.release();
+				throw err;
+			}
+			*/
+		connection.beginTransaction(function (err) {
+			if (err) {
+				//connection.release();
+				res.json({ success: 0, err });
+			}
+			var datenow = new Date();
+			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+			//var arrayIns = [req.body.codigo, req.body.descripcion, 1];
+			var updObj = {
+				descripcion: descripcion
+			}
+			connection.query("UPDATE users_type SET ? WHERE id = ?", [updObj, id], function (error, result) {
+				if (error) {
+					return connection.rollback(function () {
+						//connection.release();
+						res.json({ success: 0, err });
+					});
+				}
 
-	app.get('/list-tipo-usuario/:idTipoUsuario',isLoggedIn, checkConnection,function (req, res) {
-		let idTipoUsuario = req.params.idTipoUsuario;
-			connection.query("CALL users_detalle_tipo_usuario(?)",[ idTipoUsuario ], function (err, result) {
+				connection.query("DELETE FROM users_type_accesos WHERE id_user_type = ?", id, function (error, result) {
+					if (error) {
+						return connection.rollback(function () {
+							//connection.release();
+							res.json({ success: 0, err });
+						});
+					}
 
-				if (err) return res.status(500).send("error de consulta SQL");
-				res.json({ success: 1, tipoUsuario: result[0],detalleAccesos: result[1],accesos: result[2] });
-			});
-
-
-
-	});
-
-	app.get('/list-accesos',isLoggedIn, checkConnection,function (req, res) {
-		let idTipoUsuario = req.params.idTipoUsuario;
-			connection.query("SELECT * FROM accesos", function (err, result) {
-
-				if (err) return res.status(500).send("error de consulta SQL");
-				res.json({ success: 1, result });
-			});
-
-
-
-	});
-
-
-	app.post('/insert-tipo-usuario',isLoggedIn,bodyJson, checkConnection,function (req, res) {
-
-
-			connection.getConnection(function(err, connection) {
-	      if (err) {
-	        connection.release();
-	        throw err; }
-	    connection.beginTransaction(function (err) {
-	      if (err) {
-	        connection.release();
-	        throw err; }
-	      var datenow = new Date();
-	      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-	      //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
-
-	      connection.query("CALL users_insertar_tipos_usuarios(?)", [req.body.descripcion], function (error, result) {
-	        if (error) {
-	          return connection.rollback(function () {
-	            connection.release();
-	            throw error;
-	          });
-	        }
-				let resultado =	JSON.parse(JSON.stringify(result[0]))
-					let insertedId = parseInt(resultado[0].inserted_id);
+					var sql = "INSERT INTO users_type_accesos (id_user_type,id_acceso) VALUES ?";
+					var values = [];
+					accesos.forEach(element => {
+						if (element.checked)
+							values.push([element.id_users_type, element.id]);
+					});
 
 
-	          var sql = "INSERT INTO users_type_accesos (id_user_type,id_acceso) VALUES ?";
-	          var values = [];
-	          req.body.accesos.forEach(element => {
-							if(element.checked)
-	            values.push([insertedId,element.id]);
-	          });
-
-						if(values.length <= 0)
-							sql = "SELECT @no_data_accesos";
-
-
-
-	          connection.query(sql, [values], function (error, results) {
-
-	            if (error) {
-	              return connection.rollback(function () {
-	                connection.release();
-	                throw error;
-	              });
-	            }
-
-	            connection.commit(function (err) {
-	              if (err) {
-	                return connection.rollback(function () {
-	                  connection.release();
-	                  throw err;
-	                });
-	              } else {
-	                connection.release();
-	              res.json({ success: 1, results });
-	            }
-	            });
-	          });
-
-	      });
-	    });
-	  })
-
-
-
-	});
-
-	app.post('/update-tipo-usuario', bodyJson, checkConnection, function (req, res) {
-
-    connection.getConnection(function(err, connection) {
-      if (err) {
-        connection.release();
-        throw err; }
-    connection.beginTransaction(function (err) {
-      if (err) {
-        connection.release();
-        throw err; }
-      var datenow = new Date();
-      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-      //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
-      var updObj = {
-        descripcion: req.body.descripcion
-      }
-      connection.query("UPDATE users_type SET ? WHERE id = ?", [updObj, req.body.id], function (error, result) {
-        if (error) {
-          return connection.rollback(function () {
-            connection.release();
-            throw error;
-          });
-        }
-
-        connection.query("DELETE FROM users_type_accesos WHERE id_user_type = ?", req.body.id, function (error, result) {
-          if (error) {
-            return connection.rollback(function () {
-              connection.release();
-              throw error;
-            });
-          }
-
-          var sql = "INSERT INTO users_type_accesos (id_user_type,id_acceso) VALUES ?";
-          var values = [];
-          req.body.accesos.forEach(element => {
-						if(element.checked)
-            values.push([element.id_users_type,element.id]);
-          });
-
-
-					if(values.length <= 0)
+					if (values.length <= 0)
 						sql = "SELECT @no_data_accesos";
 
 
 
-          connection.query(sql, [values], function (error, results) {
+					connection.query(sql, [values], function (error, results) {
 
-            if (error) {
-              return connection.rollback(function () {
-                connection.release();
-                throw error;
-              });
-            }
+						if (error) {
+							return connection.rollback(function () {
+								//connection.release();
+								res.json({ success: 0, err });
+							});
+						}
 
-            connection.commit(function (err) {
-              if (err) {
-                return connection.rollback(function () {
-                  connection.release();
-                  throw err;
-                });
-              } else {
-                connection.release();
-              res.json({ success: 1, results });
-            }
-            });
-          });
-        });
-      });
-    });
-  })
-  });
-
-
-
-	app.post('/update-user',isLoggedIn, bodyJson,checkConnection, function (req, res) {
-
-
-			if (req.body.id) {
-				var id_users = parseInt(req.body.id);
-				var objectoUpdate = { nombre: req.body.nombre, id_users_type: req.body.id_users_type };
-				connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id_users], function (err, result) {
-					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
-					res.json({ success: 1, result });
+						connection.commit(function (err) {
+							if (err) {
+								return connection.rollback(function () {
+									//connection.release();
+									res.json({ success: 0, err });
+								});
+							} else {
+								//connection.release();
+								res.json({ success: 1, results });
+							}
+						});
+					});
 				});
-
-			} else {
-				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
-
-			}
-
+			});
+			//});
+		})
 	});
 
 
-	app.post('/update-pass',isLoggedIn, bodyJson,checkConnection, function (req, res) {
 
-		if (req.body.id) {
-			var id_users = parseInt(req.body.id);
-			var objectoUpdate = { password:bcrypt.hashSync(req.body.newpass, null, null) };
-			connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id_users], function (err, result) {
+	app.post('/update-user', bodyJson,(req, res, next) => { general.checkPermission(req, res, next, [11],connection) }, function (req, res) {
+		let id = parseInt(req.body.id) || null;
+		let nombre = req.body.nombre.trim() || null;
+		let id_users_type = parseInt(req.body.id_users_type) || null; 
+
+		if (id) {
+			var objectoUpdate = { nombre: nombre, id_users_type: id_users_type };
+			connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id], function (err, result) {
 				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
 				res.json({ success: 1, result });
 			});
@@ -331,58 +331,77 @@ module.exports = function (app,connection, passport) {
 
 		}
 
-});
-
-	app.post('/delete-user', bodyJson,checkConnection, function (req, res) {
+	});
 
 
-			if (req.body.id) {
-				var id_users = parseInt(req.body.id);
-				var objectoUpdate = { activo: 0 };
-				connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id_users], function (err, result) {
-					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
-					res.json({ success: 1, result });
-				});
+	app.post('/update-pass', (req, res, next) => { general.checkPermission(req, res, next, [11],connection) }, bodyJson, function (req, res) {
+		let id = parseInt(req.body.id) || null;
+		let newpass = req.body.newpass.trim() || null;
 
-			} else {
-				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
+		if (id) {
+			var objectoUpdate = { password: bcrypt.hashSync(newpass, null, null) };
+			connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
+				res.json({ success: 1, result });
+			});
 
-			}
+		} else {
+			res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
+
+		}
+
+	});
+
+	app.post('/delete-user', bodyJson, (req, res, next) => { general.checkPermission(req, res, next, [11],connection) },function (req, res) {
+		let id = parseInt(req.body.id) || null;
+
+		if (id) {
+			var objectoUpdate = { activo: 0 };
+			connection.query("UPDATE users SET ? where id = ?", [objectoUpdate, id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
+				res.json({ success: 1, result });
+			});
+
+		} else {
+			res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
+
+		}
 
 	});
 
 
-	app.post('/delete-tipo-usuario', bodyJson,checkConnection, function (req, res) {
+	app.post('/delete-tipo-usuario', bodyJson, (req, res, next) => { general.checkPermission(req, res, next, [12],connection) }, function (req, res) {
+		let id = parseInt(req.body.id) || null;
 
-			if (req.body.id) {
-				var id_users = parseInt(req.body.id);
-				var objectoUpdate = { activo: 0 };
-				connection.query("UPDATE users_type SET ? where id = ?", [objectoUpdate, id_users], function (err, result) {
-					if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
-					res.json({ success: 1, result });
-				});
+		if (id) {
+			
+			var objectoUpdate = { activo: 0 };
+			connection.query("UPDATE users_type SET ? where id = ?", [objectoUpdate, id], function (err, result) {
+				if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar actualizar users", err });
+				res.json({ success: 1, result });
+			});
 
-			} else {
-				res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
+		} else {
+			res.json({ success: 0, error_msj: "el id de la tabla users no esta ingresado" })
 
-			}
+		}
 
 	});
 
 
-  app.get('/logout', function (req, res) {
+	app.get('/logout', function (req, res) {
 		req.logout();
-		res.json({ success: 1, msj:"el usuario se ha cerrado sesión correctamente" });
+		res.json({ success: 1, msj: "el usuario se ha cerrado sesión correctamente" });
 	});
 
-  function checkConnection(req,res,next) {
-	  console.log(connection.state);
-     //connection = mysql.createConnection(dbconfig.connection);
+	function checkConnection(req, res, next) {
+		console.log(connection.state);
+		//connection = mysql.createConnection(dbconfig.connection);
 
 
-    next();
+		next();
 
-  }
+	}
 
 	function isLoggedIn(req, res, next) {
 		// if user is authenticated in the session, carry on

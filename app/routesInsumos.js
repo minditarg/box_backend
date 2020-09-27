@@ -13,8 +13,8 @@ var bodyJson = bodyParser.json()
 module.exports = function (app,connection, passport,io) {
 
 
-  app.get('/list-insumos/:idinsumo', checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[],connection)},function (req, res) {
-    var idInsumo = req.params.idinsumo;
+  app.get('/list-insumos/:idinsumo',isLoggedIn,function (req, res) {
+    var idInsumo = parseInt(req.params.idinsumo) || null;
       connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias  WHERE i.activo=1 && i.id = ?", [idInsumo], function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
         res.json({ success: 1, result });
@@ -22,7 +22,7 @@ module.exports = function (app,connection, passport,io) {
   });
 
 
-  app.get('/list-insumos-sin-cantidad',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[],connection)}, function (req, res) {
+  app.get('/list-insumos-sin-cantidad',isLoggedIn, function (req, res) {
 
       connection.query("SELECT i.id, i.descripcion, i.activo, i.unidad, i.minimo, ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE activo=1", function (err, result) {
         if (err) return res.json({ success: 0, error_msj: err });
@@ -33,19 +33,20 @@ module.exports = function (app,connection, passport,io) {
 
   });
 
-  app.get('/list-insumos',checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[],connection)}, function (req, res) {
+  app.get('/list-insumos',(req,res,next) => { general.checkPermission(req,res,next,[],connection)}, function (req, res) {
       connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.activo=1", function (err, result) {
-        if (err) return res.json({ success: 0, error_msj: err });
+        if (err) return res.status(500).send(err);
 
         res.json({ success: 1, result });
       })
   });
 
-	app.get('/list-insumos-movimientos', checkConnection, function (req, res) {
+	app.get('/list-insumos-movimientos', (req,res,next) => { general.checkPermission(req,res,next,[],connection)}, function (req, res) {
 
     connection.query("CALL insumos_listar_movimientos()", function (err, result) {
-      if (err) return res.state(500).send("error de consulta SQL");
-      res.json({ success: 1, result:result[0] });
+      if (err) return res.status(500).send(err);
+      
+      res.json({ success: 1, result });
     })
 
   });
@@ -57,7 +58,7 @@ module.exports = function (app,connection, passport,io) {
       //connection.query("call update_insumos_costo(?)", [[req.body.costo, new Date(), id_insumo, userId]], function (err, result) {
 
     // connection.query("SELECT i.id_insumos_categorias, i.numero, i.descripcion, i.activo, i.unidad, i.minimo, i.cantidad, i.costo, i.fecha_actualizacion_costo, i.alertar, i.autorizar, ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.activo=1 and i.alertar = 1 and i.fecha_actualizacion_costo <= DATE_SUB(NOW(), INTERVAL 30 DAY)", function (err, result) {
-      if (err) return res.json({ success: 0, error_msj: err });
+      if (err) return res.status(500).send(err);
       res.json({ success: 1, result });
     })
 });
@@ -69,7 +70,7 @@ app.get('/list-insumos-stock-insuficiente',checkConnection,(req,res,next) => { g
     //connection.query("call update_insumos_costo(?)", [[req.body.costo, new Date(), id_insumo, userId]], function (err, result) {
 
   // connection.query("SELECT i.id_insumos_categorias, i.numero, i.descripcion, i.activo, i.unidad, i.minimo, i.cantidad, i.costo, i.fecha_actualizacion_costo, i.alertar, i.autorizar, ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.activo=1 and i.alertar = 1 and i.fecha_actualizacion_costo <= DATE_SUB(NOW(), INTERVAL 30 DAY)", function (err, result) {
-    if (err) return res.json({ success: 0, error_msj: err });
+    if (err) return res.status(500).send(err);
     res.json({ success: 1, result });
   })
 });
@@ -78,7 +79,7 @@ app.get('/list-insumos-stock-insuficiente',checkConnection,(req,res,next) => { g
   app.get('/select-insumos/:id', checkConnection,(req,res,next) => { general.checkPermission(req,res,next,[],connection)},function (req, res) {
 
       connection.query("SELECT i.*,ic.codigo FROM insumos i LEFT JOIN insumos_categorias ic ON ic.id = i.id_insumos_categorias WHERE i.id=?", [req.params.id], function (err, result) {
-        if (err) return res.json({ success: 0, error_msj: err });
+        if (err) return res.status(500).send(err);
         res.json({ success: 1, result });
       })
 
@@ -94,7 +95,7 @@ app.get('/list-insumos-stock-insuficiente',checkConnection,(req,res,next) => { g
 
     //connection.query("UPDATE insumos set activo = 0 where id = ?", [req.body.id], function (err, result) {
       connection.query("CALL insumos_eliminar(?)", [[req.body.id, idUser]], function (err, result) {
-        if (err) return res.json({ success: 0, error_msj: err });
+        if (err) return res.status(500).send(err);
         res.json({ success: 1, result });
       })
 
@@ -106,7 +107,7 @@ app.get('/list-insumos-stock-insuficiente',checkConnection,(req,res,next) => { g
     var arrayIns = [req.body.codigo, req.body.descripcion];
     connection.query("INSERT INTO insumos_categorias (codigo, descripcion) VALUES (?)", [arrayIns], function (err, result) {
 
-      if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un insumo", err });
+      if (err) return res.status(500).send(err);
       res.json({ success: 1, result });
     })
 
@@ -137,7 +138,7 @@ app.get('/list-insumos-stock-insuficiente',checkConnection,(req,res,next) => { g
           else {
             connection.query("CALL insumos_crear(?)", [arrayIns], function (err, result) {
 
-              if (err) return res.json({ success: 0, error_msj: "ha ocurrido un error al intentar insertar un insumo", err });
+              if (err) return res.status(500).send(err);
               res.json({ success: 1, result });
             })
          }
@@ -274,6 +275,15 @@ app.post('/update-categorias', bodyJson,checkConnection,(req,res,next) => { gene
     next();
 
   }
+
+  function isLoggedIn(req, res, next) {
+		// if user is authenticated in the session, carry on
+		if (req.isAuthenticated())
+			return next();
+		// if they aren't redirect them to the home page
+		res.status(401).send("No inició sesión en la aplicación");
+	}
+
 
 
 
