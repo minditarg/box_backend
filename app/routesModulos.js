@@ -222,7 +222,7 @@ module.exports = function (app, connection, passport) {
 		if (req.user)
 			idUser = req.user.id;
 		try {
-			connection.query("UPDATE modulos SET id_modulo_estado = 5 WHERE id = ?", [req.body.id], function (err, result) {
+			connection.query("CALL modulos_finalizar(?,?)", [req.body.id, idUser], function (err, result) {
 				if (err) return res.json({ success: 0, error_msj: err });
 				res.json({ success: 1, result });
 			})
