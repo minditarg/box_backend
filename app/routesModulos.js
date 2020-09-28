@@ -360,100 +360,100 @@ module.exports = function (app, connection, passport) {
 		var idUser = null;
 		if (req.user)
 			idUser = req.user.id;
-		/*
+
 		connection.getConnection(function (err, connection) {
 			if (err) {
 				connection.release();
 				res.json({ success: 0, err });
 			}
-			*/
-		connection.beginTransaction(function (err) {
-			if (err) {
-				//	connection.release();
-				res.json({ success: 0, err });
-			}
-			var datenow = new Date();
-			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-			var arrayIns = [req.body.chasis, req.body.cotizacion, req.body.descripcion, 'Cliente', idUser];
-			connection.query("CALL modulos_crear (?)", [arrayIns], function (err, result) {
+
+			connection.beginTransaction(function (err) {
 				if (err) {
-					return connection.rollback(function () {
-						//	connection.release();
-						res.json({ success: 0, err });
-					});
+					connection.release();
+					res.json({ success: 0, err });
 				}
-
-				var insertedId = result[0][0].id;
-				var insertedIdMovimiento = result[0][0].id_modulo_movimiento;
-				var values = [];
-				var cantidad_requerida = 0;
-				req.body.detalle.forEach((element, index) => {
-					values.push([element.cantidad_requerida, insertedId, insertedIdMovimiento, element.id, index, idUser]);
-				});
-
-
-				connection.query("DELETE FROM modulos_plantillas WHERE id_modulo = ?", insertedId, function (err, result) {
+				var datenow = new Date();
+				//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+				var arrayIns = [req.body.chasis, req.body.cotizacion, req.body.descripcion, 'Cliente', idUser];
+				connection.query("CALL modulos_crear (?)", [arrayIns], function (err, result) {
 					if (err) {
 						return connection.rollback(function () {
-							//	connection.release();
-							res.json({ success: 0, err });
+							connection.release();
+							res.status(500).send(err);
 						});
 					}
 
+					var insertedId = result[0][0].id;
+					var insertedIdMovimiento = result[0][0].id_modulo_movimiento;
+					var values = [];
+					var cantidad_requerida = 0;
+					req.body.detalle.forEach((element, index) => {
+						values.push([element.cantidad_requerida, insertedId, insertedIdMovimiento, element.id, index, idUser]);
+					});
 
-					if (req.body.plantillas.length > 0) {
-						plantillasAsociadas = [];
-						req.body.plantillas.forEach((element, index) => {
-							plantillasAsociadas.push([insertedId, element.id]);
-						});
+
+					connection.query("DELETE FROM modulos_plantillas WHERE id_modulo = ?", insertedId, function (err, result) {
+						if (err) {
+							return connection.rollback(function () {
+								connection.release();
+								res.status(500).send(err);
+							});
+						}
 
 
-						connection.query("INSERT into modulos_plantillas (id_modulo, id_plantilla) values ?", [plantillasAsociadas], function (err, result) {
-							if (err) {
-								return connection.rollback(function () {
-									//	connection.release();
-									res.json({ success: 0, err });
+						if (req.body.plantillas.length > 0) {
+							plantillasAsociadas = [];
+							req.body.plantillas.forEach((element, index) => {
+								plantillasAsociadas.push([insertedId, element.id]);
+							});
+
+
+							connection.query("INSERT into modulos_plantillas (id_modulo, id_plantilla) values ?", [plantillasAsociadas], function (err, result) {
+								if (err) {
+									return connection.rollback(function () {
+										connection.release();
+										res.status(500).send(err);
+									});
+								}
+
+								recorrerArrayAgregar(values, 0, connection, res, function () {
+
+									connection.commit(function (err) {
+										if (err) {
+											return connection.rollback(function () {
+												connection.release();
+												res.status(500).send(err);
+											});
+										} else {
+											connection.release();
+											res.json({ success: 1 });
+										}
+									});
 								});
-							}
-
+							});
+						}
+						else {
 							recorrerArrayAgregar(values, 0, connection, res, function () {
 
 								connection.commit(function (err) {
 									if (err) {
 										return connection.rollback(function () {
-											//	connection.release();
-											res.json({ success: 0, err });
+											connection.release();
+											res.status(500).send(err);
 										});
 									} else {
-										//connection.release();
+										connection.release();
 										res.json({ success: 1 });
 									}
 								});
 							});
-						});
-					}
-					else {
-						recorrerArrayAgregar(values, 0, connection, res, function () {
-
-							connection.commit(function (err) {
-								if (err) {
-									return connection.rollback(function () {
-										//	connection.release();
-										res.json({ success: 0, err });
-									});
-								} else {
-									connection.release();
-									res.json({ success: 1 });
-								}
-							});
-						});
-					}
+						}
 
 
+
+					});
 
 				});
-
-				//	});
 
 			})
 
@@ -468,8 +468,8 @@ module.exports = function (app, connection, passport) {
 
 				if (err) {
 					return connection.rollback(function () {
-						//	connection.release();
-						res.json({ success: 0, err });
+						connection.release();
+						res.status(500).send(err);
 					});
 				}
 
@@ -493,93 +493,93 @@ module.exports = function (app, connection, passport) {
 		if (req.user)
 			idUser = req.user.id;
 
-		/*
+
 		connection.getConnection(function (err, connection) {
 			if (err) {
 				connection.release();
 				res.json({ success: 0, err });
 			}
-			*/
 
-		connection.beginTransaction(function (err) {
-			if (err) {
-				//	connection.release();
-				res.json({ success: 0, err });
-			}
 
-			//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-			var arrayMod = [req.body.chasis, req.body.cotizacion, req.body.descripcion, 'Cliente', 'Motivo1', req.body.id, idUser];
-			connection.query("CALL modulos_modificar (?)", [arrayMod], function (err, result) {
+			connection.beginTransaction(function (err) {
 				if (err) {
-					return connection.rollback(function () {
-						//	connection.release();
-						res.json({ success: 5, err });
-					});
+					connection.release();
+					res.json({ success: 0, err });
 				}
 
-				connection.query("DELETE FROM modulos_plantillas WHERE id_modulo = ?", req.body.id, function (err, result2) {
+				//  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+				var arrayMod = [req.body.chasis, req.body.cotizacion, req.body.descripcion, 'Cliente', 'Motivo1', req.body.id, idUser];
+				connection.query("CALL modulos_modificar (?)", [arrayMod], function (err, result) {
 					if (err) {
 						return connection.rollback(function () {
-							//	connection.release();
-							res.json({ success: 0, err });
+							connection.release();
+							res.status(500).send(err);
 						});
 					}
 
-
-					var id_modulo_movimiento = result[0][0].id_modulo_movimiento;
-
-
-
-					if (req.body.plantillas.length > 0) {
-						plantillasAsociadas = [];
-						req.body.plantillas.forEach((element, index) => {
-							plantillasAsociadas.push([req.body.id, element.id]);
-						});
+					connection.query("DELETE FROM modulos_plantillas WHERE id_modulo = ?", req.body.id, function (err, result2) {
+						if (err) {
+							return connection.rollback(function () {
+								connection.release();
+								res.status(500).send(err);
+							});
+						}
 
 
-						connection.query("INSERT into modulos_plantillas (id_modulo, id_plantilla) values ?", [plantillasAsociadas], function (err, result) {
-							if (err) {
-								return connection.rollback(function () {
-									//	connection.release();
-									res.json({ success: 0, err });
+						var id_modulo_movimiento = result[0][0].id_modulo_movimiento;
+
+
+
+						if (req.body.plantillas.length > 0) {
+							plantillasAsociadas = [];
+							req.body.plantillas.forEach((element, index) => {
+								plantillasAsociadas.push([req.body.id, element.id]);
+							});
+
+
+							connection.query("INSERT into modulos_plantillas (id_modulo, id_plantilla) values ?", [plantillasAsociadas], function (err, result) {
+								if (err) {
+									return connection.rollback(function () {
+										connection.release();
+										res.status(500).send(err);
+									});
+								}
+
+								recorrerArrayModificar(req.body.detalle, req.body.id, id_modulo_movimiento, idUser, 0, connection, res, function () {
+
+									connection.commit(function (err) {
+										if (err) {
+											return connection.rollback(function () {
+												connection.release();
+												res.status(500).send(err);
+											});
+										} else {
+											connection.release();
+											res.json({ success: 1 });
+										}
+									});
 								});
-							}
-
+							});
+						}
+						else {
 							recorrerArrayModificar(req.body.detalle, req.body.id, id_modulo_movimiento, idUser, 0, connection, res, function () {
 
 								connection.commit(function (err) {
 									if (err) {
 										return connection.rollback(function () {
-											//	connection.release();
-											res.json({ success: 0, err });
+											connection.release();
+											res.status(500).send(err);
 										});
 									} else {
-										//	connection.release();
+										connection.release();
 										res.json({ success: 1 });
 									}
 								});
 							});
-						});
-					}
-					else {
-						recorrerArrayModificar(req.body.detalle, req.body.id, id_modulo_movimiento, idUser, 0, connection, res, function () {
+						}
+					});
 
-							connection.commit(function (err) {
-								if (err) {
-									return connection.rollback(function () {
-										//	connection.release();
-										res.json({ success: 0, err });
-									});
-								} else {
-									//	connection.release();
-									res.json({ success: 1 });
-								}
-							});
-						});
-					}
 				});
-
-				//	});
 
 			})
 
@@ -615,9 +615,9 @@ module.exports = function (app, connection, passport) {
 				if (err) {
 					//console.log(err.sqlMessage);
 					return connection.rollback(function () {
-					//	connection.release();
-					//	res.json({ success: 5, err });
-					res.status(500).send(err);
+						//	connection.release();
+						//	res.json({ success: 5, err });
+						res.status(500).send(err);
 					});
 				}
 

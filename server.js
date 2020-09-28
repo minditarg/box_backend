@@ -24,12 +24,14 @@ var flash    = require('connect-flash');
 var mysql = require('mysql2');
 var dbconfig = require('./config/database');
 //var connection = mysql.createConnection(dbconfig.connection);
-var connection = mysql.createConnection({
+var connection = mysql.createPool({
   host: '50.63.166.215',
   user: 'matias',
   password: 'Holaardu',
   database: 'boxrental_deploy',
-  connectTimeout:5000
+  waitForConnections: true,
+  connectionLimit: 3,
+  queueLimit: 0
 })
 
 var sessionStore = new MySQLStore({}, connection.promise());

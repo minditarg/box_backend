@@ -26,9 +26,9 @@ module.exports = function (app, connection, passport) {
 
   app.get('/list-entregas-insumos-modulo/:idModulo', checkConnection, function (req, res) {
     let idModulo = req.params.idModulo;
-    connection.query("CALL entregas_listar_insumos_modulo(?) ",[idModulo], function (err, result) {
+    connection.query("CALL entregas_listar_insumos_modulo(?) ", [idModulo], function (err, result) {
       if (err) return res.json({ success: 0, error_msj: err });
-      res.json({ success: 1, result:result[0] });
+      res.json({ success: 1, result: result[0] });
 
     })
 
@@ -57,17 +57,17 @@ module.exports = function (app, connection, passport) {
 
 
   app.post('/insert-entregas', bodyJson, checkConnection, function (req, res) {
-    /*
+
     connection.getConnection(function (err, connection) {
       if (err) {
         connection.release();
         res.json({ success: 0, err });
       }
-      */
+
 
       connection.beginTransaction(function (err) {
         if (err) {
-        //  connection.release();
+          connection.release();
           res.json({ success: 0, err });
         }
         var datenow = new Date();
@@ -75,11 +75,11 @@ module.exports = function (app, connection, passport) {
         if (req.user)
           userId = req.user.id;
         //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-        var arrayIns = [req.body.id_modulo,req.body.referencia, req.body.comentario,userId];
+        var arrayIns = [req.body.id_modulo, req.body.referencia, req.body.comentario, userId];
         connection.query("CALL entregas_crear(?)", [arrayIns], function (err, result) {
           if (err) {
             return connection.rollback(function () {
-            //  connection.release();
+              connection.release();
               res.json({ success: 0, err });
             });
           }
@@ -90,10 +90,10 @@ module.exports = function (app, connection, passport) {
 
           var values = [];
           req.body.detalle.forEach(element => {
-            values.push([insertedEntrega,req.body.id_modulo,element.id_modulo_insumo,insertedModuloMovimiento, element.cantidad, userId ]);
+            values.push([insertedEntrega, req.body.id_modulo, element.id_modulo_insumo, insertedModuloMovimiento, element.cantidad, userId]);
           });
 
-          recorrerArrayAgregar(values,0,connection, res,function(){
+          recorrerArrayAgregar(values, 0, connection, res, function () {
 
 
 
@@ -101,17 +101,17 @@ module.exports = function (app, connection, passport) {
             connection.commit(function (err) {
               if (err) {
                 return connection.rollback(function () {
-                //  connection.release();
+                  connection.release();
                   res.json({ success: 0, err });
                 });
               }
-
+              connection.release();
               res.json({ success: 1 });
             });
           });
         });
 
-      //});
+      });
     })
 
   });
@@ -126,7 +126,7 @@ module.exports = function (app, connection, passport) {
 
         if (err) {
           return connection.rollback(function () {
-          //  connection.release();
+             connection.release();
             res.json({ success: 0, err });
           });
         }

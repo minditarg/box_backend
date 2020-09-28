@@ -14,60 +14,61 @@ module.exports = function (app, connection, passport) {
 
 
   app.post('/insert-plantilla', bodyJson, checkConnection, function (req, res) {
-    /*
-    connection.getConnection(function(err, connection) {
+
+    connection.getConnection(function (err, connection) {
       if (err) {
         connection.release();
-        throw err; }
-        */
-    connection.beginTransaction(function (err) {
-      if (err) {
-        //connection.release();
-        res.json({ success: 0, err });
+        throw err;
       }
-      var datenow = new Date();
-      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-      var arrayIns = [req.body.codigo, req.body.descripcion, 1];
-      connection.query("INSERT INTO plantillas (codigo, descripcion, activo) VALUES (?,?,?)", arrayIns, function (error, result) {
-        if (error) {
-          return connection.rollback(function () {
-            //connection.release();
-            res.json({ success: 0, err });
-          });
+
+      connection.beginTransaction(function (err) {
+        if (err) {
+          connection.release();
+          res.json({ success: 0, err });
         }
-
-        var insertedId = result.insertId;
-
-        var sql = "INSERT INTO plantillas_insumos (id_plantilla, id_insumo, cantidad, activo) VALUES ?";
-        var values = [];
-        req.body.detalle.forEach(element => {
-          values.push([insertedId, element.id, element.cantidad, 1]);
-        });
-        connection.query(sql, [values], function (error, results) {
-
+        var datenow = new Date();
+        //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+        var arrayIns = [req.body.codigo, req.body.descripcion, 1];
+        connection.query("INSERT INTO plantillas (codigo, descripcion, activo) VALUES (?,?,?)", arrayIns, function (error, result) {
           if (error) {
             return connection.rollback(function () {
-              //connection.release();
+              connection.release();
               res.json({ success: 0, err });
             });
           }
 
-          connection.commit(function (err) {
-            if (err) {
+          var insertedId = result.insertId;
+
+          var sql = "INSERT INTO plantillas_insumos (id_plantilla, id_insumo, cantidad, activo) VALUES ?";
+          var values = [];
+          req.body.detalle.forEach(element => {
+            values.push([insertedId, element.id, element.cantidad, 1]);
+          });
+          connection.query(sql, [values], function (error, results) {
+
+            if (error) {
               return connection.rollback(function () {
-                //connection.release();
+                connection.release();
                 res.json({ success: 0, err });
               });
-            } else {
-
-              res.json({ success: 1, results });
-              //connection.release();
             }
+
+            connection.commit(function (err) {
+              if (err) {
+                return connection.rollback(function () {
+                  connection.release();
+                  res.json({ success: 0, err });
+                });
+              } else {
+                connection.release();
+                res.json({ success: 1, results });
+
+              }
+            });
           });
         });
-      });
 
-      //});
+      });
 
     })
 
@@ -76,70 +77,70 @@ module.exports = function (app, connection, passport) {
 
 
   app.post('/update-plantilla', bodyJson, checkConnection, function (req, res) {
-    /*
+
     connection.getConnection(function (err, connection) {
       if (err) {
         connection.release();
         throw err;
       }
-      */
-    connection.beginTransaction(function (err) {
-      if (err) {
-        //connection.release();
-        res.json({ success: 0, err });
-      }
-      var datenow = new Date();
-      //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
-      //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
-      var updObj = {
-        codigo: req.body.codigo,
-        descripcion: req.body.descripcion
-      }
-      connection.query("UPDATE plantillas SET ? WHERE id = ?", [updObj, req.body.id], function (error, result) {
-        if (error) {
-          return connection.rollback(function () {
-            //connection.release();
-            res.json({ success: 0, err });
-          });
-        }
 
-        connection.query("DELETE FROM plantillas_insumos WHERE id_plantilla = ?", req.body.id, function (error, result) {
+      connection.beginTransaction(function (err) {
+        if (err) {
+          connection.release();
+          res.json({ success: 0, err });
+        }
+        var datenow = new Date();
+        //  console.log("fecha: " + moment(req.body.fechaIdentificador, "MM/DD/YYYY"));
+        //var arrayIns = [req.body.codigo, req.body.descripcion, 1];
+        var updObj = {
+          codigo: req.body.codigo,
+          descripcion: req.body.descripcion
+        }
+        connection.query("UPDATE plantillas SET ? WHERE id = ?", [updObj, req.body.id], function (error, result) {
           if (error) {
             return connection.rollback(function () {
-              //connection.release();
+              connection.release();
               res.json({ success: 0, err });
             });
           }
 
-          var sql = "INSERT INTO plantillas_insumos (id_plantilla, id_insumo, cantidad, activo) VALUES ?";
-          var values = [];
-          req.body.detalle.forEach(element => {
-            values.push([req.body.id, element.id, element.cantidad, 1]);
-          });
-          connection.query(sql, [values], function (error, results) {
-
+          connection.query("DELETE FROM plantillas_insumos WHERE id_plantilla = ?", req.body.id, function (error, result) {
             if (error) {
               return connection.rollback(function () {
-                //connection.release();
+                connection.release();
                 res.json({ success: 0, err });
               });
             }
 
-            connection.commit(function (err) {
-              if (err) {
+            var sql = "INSERT INTO plantillas_insumos (id_plantilla, id_insumo, cantidad, activo) VALUES ?";
+            var values = [];
+            req.body.detalle.forEach(element => {
+              values.push([req.body.id, element.id, element.cantidad, 1]);
+            });
+            connection.query(sql, [values], function (error, results) {
+
+              if (error) {
                 return connection.rollback(function () {
-                  //connection.release();
+                  connection.release();
                   res.json({ success: 0, err });
                 });
-              } else {
-                //connection.release();
-                res.json({ success: 1, results });
               }
+
+              connection.commit(function (err) {
+                if (err) {
+                  return connection.rollback(function () {
+                    connection.release();
+                    res.json({ success: 0, err });
+                  });
+                } else {
+                  connection.release();
+                  res.json({ success: 1, results });
+                }
+              });
             });
           });
         });
       });
-      //});
     })
   });
 
