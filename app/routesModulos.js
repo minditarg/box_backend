@@ -323,7 +323,7 @@ module.exports = function (app, connection, passport) {
 			let sql = "CALL modulos_ordenar_insumo(?)";
 
 			connection.query(sql, [array[index]], function (err, results) {
-				console.log("hola matias");
+				
 				if (err) {
 					console.log(err);
 					return res.json({ success: 0, err });
@@ -597,7 +597,7 @@ module.exports = function (app, connection, passport) {
 				arrayMod = [objeto.cantidad_requerida, id, id_modulo_movimiento, objeto.id, index, idUser];
 
 			} else if (objeto.modificado) {
-				console.log("cantidad_requerida: " + objeto.cantidad_requerida);
+				
 				sql = "CALL modulos_modificar_cantidad_insumo(?)";
 				arrayMod = [objeto.cantidad_requerida, id_modulo_movimiento, objeto.id_modulo_insumo, index, idUser];
 
@@ -654,7 +654,7 @@ module.exports = function (app, connection, passport) {
 
 
 	function checkConnection(req, res, next) {
-		console.log(connection.state);
+		//console.log(connection.state);
 		// connection = mysql.createConnection(dbconfig.connection);
 
 
